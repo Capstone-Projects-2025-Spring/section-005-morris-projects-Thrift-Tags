@@ -11,7 +11,8 @@ const ProfilePage = () => {
         location: "San Francisco, CA",
         favorites: ["Vintage Clothing", "Antique Books", "Vinyl Records"],
         reviews: 5,
-        friends: 15
+        friends: 15,
+        avatar: null // Add avatar field
     });
 
     const [isEditing, setIsEditing] = useState(false);
@@ -22,14 +23,41 @@ const ProfilePage = () => {
         setIsEditing(false);
     };
 
+    const handleAvatarChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setUserData({ ...userData, avatar: reader.result });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     return (
         <div className="profile-container">
             <div className="profile-header">
                 <div className="profile-avatar">
-                    {/* Default avatar circle with initials */}
-                    <div className="avatar-circle">
-                        {userData.username.charAt(0)}
-                    </div>
+                    {userData.avatar ? (
+                        <img 
+                            src={userData.avatar} 
+                            alt="Profile" 
+                            className="avatar-image"
+                        />
+                    ) : (
+                        <div className="avatar-circle">
+                            {userData.username.charAt(0)}
+                        </div>
+                    )}
+                    <label className="avatar-upload">
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarChange}
+                            style={{ display: 'none' }}
+                        />
+                        Change Photo
+                    </label>
                 </div>
                 <div className="profile-info">
                     <h1>{userData.username}</h1>
