@@ -18,6 +18,10 @@
     padding-bottom: 2rem;
 }
 
+.profile-avatar {
+    position: relative;
+}
+
 .avatar-circle {
     width: 150px;
     height: 150px;
@@ -29,6 +33,31 @@
     font-size: 3rem;
     color: white;
     font-weight: bold;
+}
+
+.avatar-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-upload {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.avatar-upload:hover {
+    background-color: rgba(0, 0, 0, 0.9);
 }
 
 .profile-info {
