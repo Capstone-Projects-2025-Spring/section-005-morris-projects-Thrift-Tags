@@ -10,7 +10,10 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "firebase": "^10.8.0",
+    "@firebase/auth": "^1.6.0",
+    "@firebase/firestore": "^4.4.0"
   },
   "scripts": {
     "start": "react-scripts start",
