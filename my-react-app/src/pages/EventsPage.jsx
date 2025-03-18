@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import './eventPage.css';
+import '../eventsPage.css';
 
 const EventsPage = ({ onEvent }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
