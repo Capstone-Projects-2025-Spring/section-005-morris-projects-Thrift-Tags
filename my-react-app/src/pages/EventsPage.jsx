@@ -5,14 +5,15 @@ const EventsPage = ({ onEvent }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [eventName, setEventName] = useState("");
   const [eventLocation, setEventLocation] = useState("");
-  const [eventHost, setEventHost] = useState("Me");
+  const [eventHost, setEventHost] = useState("");
   const [eventPrivacy, setEventPrivacy] = useState("Public");
   const [filterInput, setFilterInput] = useState("");
+  const [locationMessage, setLocationMessage] = useState("");
 
   const [events, setEvents] = useState([
     {
       name: "Thrift Sales",
-      location: "Philadelphia, PA",
+      location: "Philadelphia, Pennsylvania",
       host: "Me",
       privacy: "Private"
     }
@@ -27,7 +28,7 @@ const EventsPage = ({ onEvent }) => {
   const closePopup = () => {
     setEventName("");
     setEventLocation("");
-    setEventHost("Me");
+    setEventHost("");
     setEventPrivacy("Public");
     setIsPopupOpen(false);
   };
@@ -112,6 +113,63 @@ const EventsPage = ({ onEvent }) => {
     return hostLower === "me" || hostLower === "myself";
   };
 
+  const getLocation = () => {
+    if (navigator.geolocation) {
+      setLocationMessage("Getting your location...");
+      navigator.geolocation.getCurrentPosition(
+        // Success callback
+        (position) => {
+          const lat = position.coords.latitude;
+          const long = position.coords.longitude;
+
+          // Use reverse geocoding to get city and state
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${long}&addressdetails=1`)
+            .then(response => response.json())
+            .then(data => {
+              // Extract city and state from the response
+              const city = data.address.city || data.address.town || data.address.village || '';
+              const state = data.address.state || '';
+              const country = data.address.country || '';
+
+              // Format the location string
+              const locationString = city && state ? `${city}, ${state}` :
+                city ? `${city}, ${country}` :
+                  state ? `${state}, ${country}` :
+                    "Location found";
+
+              // Update the location input
+              setEventLocation(locationString);
+              setLocationMessage("Location found!");
+            })
+            .catch(error => {
+              console.error("Error fetching address:", error);
+              setLocationMessage("Couldn't retrieve address. Using coordinates instead.");
+              setEventLocation(`Near ${lat.toFixed(3)}, ${long.toFixed(3)}`);
+            });
+        },
+        // Error callback
+        (err) => {
+          switch (err.code) {
+            case 1:
+              setLocationMessage("User denied the request for Geolocation.");
+              break;
+            case 2:
+              setLocationMessage("Location information is unavailable.");
+              break;
+            case 3:
+              setLocationMessage("The request to get user location timed out.");
+              break;
+            default:
+              setLocationMessage("An unknown error occurred.");
+              break;
+          }
+        }
+      );
+    } else {
+      setLocationMessage("Geolocation is not supported by this browser.");
+    }
+  };
+
   return (
     <div className="body-wrapper">
       <div className="eventsContainer">
@@ -124,7 +182,7 @@ const EventsPage = ({ onEvent }) => {
         &nbsp;
         <button onClick={doFilter}>Search</button>
         &nbsp;
-        <button onClick={clearFilter}>Clear</button>
+        <button onClick={clearFilter}>Clear Search</button>
         <button className="createEventButton" onClick={openPopup}>Create Event</button>
         <div id="myPopup" className="popup" style={{ display: isPopupOpen ? "block" : "none" }} onClick={handleOutsideClick}>
           <div className="popup-content">
@@ -139,13 +197,15 @@ const EventsPage = ({ onEvent }) => {
               value={eventLocation}
               onChange={(e) => setEventLocation(e.target.value)}
               placeholder="Event Location"
-            /> <br />
+            />
+            <button type="button" onClick={getLocation}>Use my location</button>
+            {locationMessage && <div className="location-message">{locationMessage}</div>}
             <input
               value={eventHost}
               onChange={(e) => setEventHost(e.target.value)}
               placeholder="Who's Hosting"
             /> <br />
-            
+
             {/* Privacy selection with radio buttons */}
             <div className="privacy-options">
               <label>Privacy:</label>
@@ -173,7 +233,7 @@ const EventsPage = ({ onEvent }) => {
               </div>
             </div>
             <br />
-            
+
             <button onClick={handleSubmit}>Create</button>
           </div>
         </div>
@@ -181,19 +241,19 @@ const EventsPage = ({ onEvent }) => {
           <thead>
             <tr>
               <th onClick={() => sortByProp("name", "text")}>
-              <span style={{ cursor: "pointer" }}>⇅</span>Event Name</th>
+                <span style={{ cursor: "pointer" }}>⇅</span>Event Name</th>
               <th onClick={() => sortByProp("location", "text")}>
-              <span style={{ cursor: "pointer" }}>⇅</span>Event Location</th>
+                <span style={{ cursor: "pointer" }}>⇅</span>Event Location</th>
               <th onClick={() => sortByProp("host", "text")}>
-              <span style={{ cursor: "pointer" }}>⇅</span>Hosting</th>
+                <span style={{ cursor: "pointer" }}>⇅</span>Hosting</th>
               <th onClick={() => sortByProp("privacy", "text")}>
-              <span style={{ cursor: "pointer" }}>⇅</span>Private/Public</th>
+                <span style={{ cursor: "pointer" }}>⇅</span>Private/Public</th>
             </tr>
           </thead>
           <tbody>
             {filteredEvents.map((event, index) => (
-              <tr 
-                key={index} 
+              <tr
+                key={index}
                 className={isMyEvent(event.host) ? "my-event-row" : ""}
               >
                 <td>{event.name}</td>
