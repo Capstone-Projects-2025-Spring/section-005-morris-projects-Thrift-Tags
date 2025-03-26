@@ -18,7 +18,7 @@ function App() {
         <Router>
             <div>
                 <Routes>
-                    <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
+                    <Route path="/" element={<EventsPage onLogin={handleLogin} />} />
                     {isLoggedIn && (
                         <>
                             <Route path="/home" element={<HomeMap/>}/>

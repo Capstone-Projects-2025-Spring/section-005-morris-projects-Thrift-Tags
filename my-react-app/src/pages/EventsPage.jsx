@@ -3,6 +3,8 @@ import '../eventsPage.css';
 
 const EventsPage = ({ onEvent }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isDetailsPopupOpen, setIsDetailsPopupOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [eventName, setEventName] = useState("");
   const [eventLocation, setEventLocation] = useState("");
   const [eventHost, setEventHost] = useState("");
@@ -33,9 +35,20 @@ const EventsPage = ({ onEvent }) => {
     setIsPopupOpen(false);
   };
 
+  const openDetailsPopup = (event) => {
+    setSelectedEvent(event);
+    setIsDetailsPopupOpen(true);
+  };
+
+  const closeDetailsPopup = () => {
+    setSelectedEvent(null);
+    setIsDetailsPopupOpen(false);
+  };
+
   const handleOutsideClick = (event) => {
     if (event.target.className === "popup") {
       closePopup();
+      closeDetailsPopup();
     }
   };
 
@@ -184,6 +197,8 @@ const EventsPage = ({ onEvent }) => {
         &nbsp;
         <button onClick={clearFilter}>Clear Search</button>
         <button className="createEventButton" onClick={openPopup}>Create Event</button>
+        
+        {/* Create Event Popup (existing code) */}
         <div id="myPopup" className="popup" style={{ display: isPopupOpen ? "block" : "none" }} onClick={handleOutsideClick}>
           <div className="popup-content">
             <span className="close" onClick={closePopup}>&times;</span>
@@ -237,6 +252,23 @@ const EventsPage = ({ onEvent }) => {
             <button onClick={handleSubmit}>Create</button>
           </div>
         </div>
+
+        {/* Event Details Popup */}
+        {isDetailsPopupOpen && selectedEvent && (
+          <div className="popup" onClick={handleOutsideClick}>
+            <div className="popup-content">
+              <span className="close" onClick={closeDetailsPopup}>&times;</span>
+              <h3>Event Details</h3>
+              <div className="event-details">
+                <p><strong>Event Name:</strong> {selectedEvent.name}</p>
+                <p><strong>Location:</strong> {selectedEvent.location}</p>
+                <p><strong>Host:</strong> {selectedEvent.host}</p>
+                <p><strong>Privacy:</strong> {selectedEvent.privacy}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <table>
           <thead>
             <tr>
@@ -255,6 +287,8 @@ const EventsPage = ({ onEvent }) => {
               <tr
                 key={index}
                 className={isMyEvent(event.host) ? "my-event-row" : ""}
+                onClick={() => openDetailsPopup(event)}
+                style={{ cursor: "pointer" }}
               >
                 <td>{event.name}</td>
                 <td>{event.location}</td>
