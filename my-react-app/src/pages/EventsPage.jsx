@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import '../eventsPage.css';
 
 const EventsPage = ({ onEvent }) => {
@@ -9,6 +9,8 @@ const EventsPage = ({ onEvent }) => {
   const [eventLocation, setEventLocation] = useState("");
   const [eventHost, setEventHost] = useState("");
   const [eventPrivacy, setEventPrivacy] = useState("Public");
+  const [eventDate, setEventDate] = useState("");
+  const [eventTime, setEventTime] = useState("");
   const [filterInput, setFilterInput] = useState("");
   const [locationMessage, setLocationMessage] = useState("");
 
@@ -17,11 +19,62 @@ const EventsPage = ({ onEvent }) => {
       name: "Thrift Sales",
       location: "Philadelphia, Pennsylvania",
       host: "Me",
-      privacy: "Private"
+      privacy: "Private",
+      date: "2025-07-15",
+      time: "14:00"
+    }, 
+    {
+      name: "Your Thrift Event",
+      location: "Atlanta, Georgia",
+      host: "Kevin",
+      privacy: "Public",
+      date: "2024-08-20",
+      time: "10:30"
     }
   ]);
 
   const [filteredEvents, setFilteredEvents] = useState(events);
+
+  // Countdown Component
+  const Countdown = ({ event }) => {
+    const [timeLeft, setTimeLeft] = useState({});
+
+    useEffect(() => {
+      const calculateTimeLeft = () => {
+        const eventDateTime = new Date(`${event.date}T${event.time}`);
+        const difference = eventDateTime - new Date();
+
+        if (difference > 0) {
+          const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+          const minutes = Math.floor((difference / 1000 / 60) % 60);
+          const seconds = Math.floor((difference / 1000) % 60);
+
+          return { days, hours, minutes, seconds };
+        }
+
+        return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+      };
+
+      const timer = setInterval(() => {
+        setTimeLeft(calculateTimeLeft());
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }, [event.date, event.time]);
+
+    return (
+      <div className="countdown">
+        <h4>Countdown to Event</h4>
+        <div className="countdown-display">
+          <div><strong>{timeLeft.days}</strong> Days</div>
+          <div><strong>{timeLeft.hours}</strong> Hours</div>
+          <div><strong>{timeLeft.minutes}</strong> Minutes</div>
+          <div><strong>{timeLeft.seconds}</strong> Seconds</div>
+        </div>
+      </div>
+    );
+  };
 
   const openPopup = () => {
     setIsPopupOpen(true);
@@ -31,6 +84,8 @@ const EventsPage = ({ onEvent }) => {
     setEventName("");
     setEventLocation("");
     setEventHost("");
+    setEventDate("");
+    setEventTime("");
     setEventPrivacy("Public");
     setIsPopupOpen(false);
   };
@@ -58,12 +113,14 @@ const EventsPage = ({ onEvent }) => {
         name: eventName,
         location: eventLocation || "TBD",
         host: eventHost || "Me",
-        privacy: eventPrivacy || "Public"
+        privacy: eventPrivacy || "Public",
+        date: eventDate || new Date().toISOString().split('T')[0],
+        time: eventTime || "00:00"
       };
 
       const updatedEvents = [...events, newEvent];
       setEvents(updatedEvents);
-      setFilteredEvents(updatedEvents); // Update filtered list too
+      setFilteredEvents(updatedEvents);
 
       if (onEvent) {
         onEvent(updatedEvents);
@@ -100,7 +157,7 @@ const EventsPage = ({ onEvent }) => {
       return valA > valB ? 1 : valA < valB ? -1 : 0;
     });
 
-    setFilteredEvents(sortedList); // Update filtered events with sorted list
+    setFilteredEvents(sortedList);
   };
 
   const doFilter = () => {
@@ -109,7 +166,9 @@ const EventsPage = ({ onEvent }) => {
       event.name.toLowerCase().includes(lowercasedFilter) ||
       event.location.toLowerCase().includes(lowercasedFilter) ||
       event.host.toLowerCase().includes(lowercasedFilter) ||
-      event.privacy.toLowerCase().includes(lowercasedFilter)
+      event.privacy.toLowerCase().includes(lowercasedFilter) ||
+      event.date.toLowerCase().includes(lowercasedFilter) ||
+      event.time.toLowerCase().includes(lowercasedFilter)
     );
     setFilteredEvents(newList);
   };
@@ -117,13 +176,6 @@ const EventsPage = ({ onEvent }) => {
   const clearFilter = () => {
     setFilterInput("");
     setFilteredEvents(events);
-  };
-
-  // Function to check if an event is hosted by me
-  const isMyEvent = (host) => {
-    if (!host) return false;
-    const hostLower = host.toLowerCase();
-    return hostLower === "me" || hostLower === "myself";
   };
 
   const getLocation = () => {
@@ -183,6 +235,13 @@ const EventsPage = ({ onEvent }) => {
     }
   };
 
+  // Function to check if an event is hosted by me
+  const isMyEvent = (host) => {
+    if (!host) return false;
+    const hostLower = host.toLowerCase();
+    return hostLower === "me" || hostLower === "myself";
+  };
+
   return (
     <div className="body-wrapper">
       <div className="eventsContainer">
@@ -198,7 +257,7 @@ const EventsPage = ({ onEvent }) => {
         <button onClick={clearFilter}>Clear Search</button>
         <button className="createEventButton" onClick={openPopup}>Create Event</button>
         
-        {/* Create Event Popup (existing code) */}
+        {/* Create Event Popup */}
         <div id="myPopup" className="popup" style={{ display: isPopupOpen ? "block" : "none" }} onClick={handleOutsideClick}>
           <div className="popup-content">
             <span className="close" onClick={closePopup}>&times;</span>
@@ -220,6 +279,20 @@ const EventsPage = ({ onEvent }) => {
               onChange={(e) => setEventHost(e.target.value)}
               placeholder="Who's Hosting"
             /> <br />
+            
+            {/* Date and Time Inputs */}
+            <input
+              type="date"
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
+              placeholder="Event Date"
+            />
+            <input
+              type="time"
+              value={eventTime}
+              onChange={(e) => setEventTime(e.target.value)}
+              placeholder="Event Time"
+            />
 
             {/* Privacy selection with radio buttons */}
             <div className="privacy-options">
@@ -264,7 +337,10 @@ const EventsPage = ({ onEvent }) => {
                 <p><strong>Location:</strong> {selectedEvent.location}</p>
                 <p><strong>Host:</strong> {selectedEvent.host}</p>
                 <p><strong>Privacy:</strong> {selectedEvent.privacy}</p>
+                <p><strong>Date:</strong> {selectedEvent.date}</p>
+                <p><strong>Time:</strong> {selectedEvent.time}</p>
               </div>
+              <Countdown event={selectedEvent} />
             </div>
           </div>
         )}
@@ -280,6 +356,10 @@ const EventsPage = ({ onEvent }) => {
                 <span style={{ cursor: "pointer" }}>⇅</span>Hosting</th>
               <th onClick={() => sortByProp("privacy", "text")}>
                 <span style={{ cursor: "pointer" }}>⇅</span>Private/Public</th>
+              <th onClick={() => sortByProp("date", "date")}>
+                <span style={{ cursor: "pointer" }}>⇅</span>Date</th>
+              <th onClick={() => sortByProp("time", "text")}>
+                <span style={{ cursor: "pointer" }}>⇅</span>Time</th>
             </tr>
           </thead>
           <tbody>
@@ -294,6 +374,8 @@ const EventsPage = ({ onEvent }) => {
                 <td>{event.location}</td>
                 <td>{event.host}</td>
                 <td>{event.privacy}</td>
+                <td>{event.date}</td>
+                <td>{event.time}</td>
               </tr>
             ))}
           </tbody>
