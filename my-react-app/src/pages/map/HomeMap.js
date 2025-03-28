@@ -1,21 +1,13 @@
 import React from "react";
 import "./HomeMap.css";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, MapCameraChangedEvent } from "@vis.gl/react-google-maps";
+import NavBar from "../NavBar";
 
 export default function HomeMap() {
     const position = { lat: 39.9526, lng: -75.1652 };
 
     return (
         <div className="home-map-container">
-            <nav className="navbar">
-                <div className="nav-links">
-                    <a href="#">Home</a>
-                </div>
-                <h1 className="logo">Thrift Tags</h1>
-                <div className="nav-links">
-                    <div className="menu-icon">☰</div>
-                </div>
-            </nav>
 
             <div className="city-title">
                 <h2>Philadelphia</h2>
