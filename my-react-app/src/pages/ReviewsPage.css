@@ -29,7 +29,7 @@
 }
 
 .review-rating {
-    color: #f0c040;
+    color: #ffce31;
     margin-bottom: 12px;
     font-size: 1.2em;
     letter-spacing: 2px;
@@ -44,4 +44,20 @@
 .review-date {
     color: #888;
     font-size: 0.8em;
+}
+
+.stars-container {
+    display: flex;
+    align-items: center;
+}
+
+.star {
+    font-size: 20px;
+}
+
+.half-star,
+.empty-star {
+    width: 20px;
+    height: 20px;
+    vertical-align: bottom;
 } 

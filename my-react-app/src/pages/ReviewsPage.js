@@ -1,5 +1,7 @@
 import React from 'react';
 import './ReviewsPage.css';
+import halfStar from '../images/Half_Star.png';
+import emptyStar from '../images/gray star.png';
 
 const ReviewsPage = () => {
     // Sample review data - in a real app, this would come from your backend
@@ -47,17 +49,32 @@ const ReviewsPage = () => {
         const hasHalfStar = rating % 1 !== 0;
         
         return (
-            <>
-                {"★".repeat(fullStars)}
-                {hasHalfStar ? "½" : ""}
-                {"☆".repeat(5 - Math.ceil(rating))}
-            </>
+            <div className="stars-container">
+                {[...Array(fullStars)].map((_, i) => (
+                    <span key={`full-${i}`} className="star">★</span>
+                ))}
+                {hasHalfStar && (
+                    <img 
+                        src={halfStar}
+                        alt="half star" 
+                        className="star half-star"
+                    />
+                )}
+                {[...Array(5 - Math.ceil(rating))].map((_, i) => (
+                    <img 
+                        key={`empty-${i}`}
+                        src={emptyStar}
+                        alt="empty star"
+                        className="star empty-star"
+                    />
+                ))}
+            </div>
         );
     };
 
     return (
         <div className="reviews-container">
-            <h1>My Reviews</h1>
+            <h1>Reviews</h1>
             <div className="reviews-list">
                 {reviews.map(review => (
                     <div key={review.id} className="review-card">
