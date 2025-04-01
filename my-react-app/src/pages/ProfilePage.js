@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import './ProfilePage.css';
+import { useNavigate } from 'react-router-dom';
 
 const ProfilePage = () => {
+    const navigate = useNavigate();
+
     // Sample user data - in a real app, this would come from your backend
     const [userData, setUserData] = useState({
         username: "John Doe",
@@ -34,6 +37,10 @@ const ProfilePage = () => {
         }
     };
 
+    const handleReviewsClick = () => {
+        navigate('/reviews');
+    };
+
     return (
         <div className="profile-container">
             <div className="profile-header">
@@ -62,7 +69,7 @@ const ProfilePage = () => {
                 <div className="profile-info">
                     <h1>{userData.username}</h1>
                     <div className="profile-stats">
-                        <div className="stat-item">
+                        <div className="stat-item" onClick={handleReviewsClick} style={{ cursor: 'pointer' }}>
                             <span className="stat-number">{userData.reviews}</span>
                             <span className="stat-label">Reviews</span>
                         </div>
