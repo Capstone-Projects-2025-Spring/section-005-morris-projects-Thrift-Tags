@@ -6,6 +6,7 @@ import NavBar from "./pages/NavBar";
 import HomeMap from "./pages/map/HomeMap";
 import EventsPage from "./pages/EventsPage";
 import ProfilePage from "./pages/ProfilePage";
+import ReviewsPage from './pages/ReviewsPage';
 
 function App() {
 
