@@ -22,7 +22,7 @@ const EventsPage = ({ onEvent }) => {
       privacy: "Private",
       date: "2025-07-15",
       time: "14:00"
-    }, 
+    },
     {
       name: "Your Thrift Event",
       location: "Atlanta, Georgia",
@@ -242,6 +242,30 @@ const EventsPage = ({ onEvent }) => {
     return hostLower === "me" || hostLower === "myself";
   };
 
+  const handleDeleteEvent = (eventToDelete, index, e) => {
+    // Stop the event from bubbling up to the row click handler
+    e.stopPropagation();
+
+    // Show confirmation dialog
+    if (window.confirm(`Are you sure you want to delete "${eventToDelete.name}"?`)) {
+      const updatedEvents = events.filter((_, i) => i !== index);
+      setEvents(updatedEvents);
+      setFilteredEvents(updatedEvents.filter(event =>
+        event.name.toLowerCase().includes(filterInput.toLowerCase()) ||
+        event.location.toLowerCase().includes(filterInput.toLowerCase()) ||
+        event.host.toLowerCase().includes(filterInput.toLowerCase()) ||
+        event.privacy.toLowerCase().includes(filterInput.toLowerCase()) ||
+        event.date.toLowerCase().includes(filterInput.toLowerCase()) ||
+        event.time.toLowerCase().includes(filterInput.toLowerCase())
+      ));
+
+      // Notify parent component if needed
+      if (onEvent) {
+        onEvent(updatedEvents);
+      }
+    }
+  };
+
   return (
     <div className="body-wrapper">
       <div className="eventsContainer">
@@ -256,7 +280,7 @@ const EventsPage = ({ onEvent }) => {
         &nbsp;
         <button onClick={clearFilter}>Clear Search</button>
         <button className="createEventButton" onClick={openPopup}>Create Event</button>
-        
+
         {/* Create Event Popup */}
         <div id="myPopup" className="popup" style={{ display: isPopupOpen ? "block" : "none" }} onClick={handleOutsideClick}>
           <div className="popup-content">
@@ -279,7 +303,7 @@ const EventsPage = ({ onEvent }) => {
               onChange={(e) => setEventHost(e.target.value)}
               placeholder="Who's Hosting"
             /> <br />
-            
+
             {/* Date and Time Inputs */}
             <input
               type="date"
@@ -360,6 +384,7 @@ const EventsPage = ({ onEvent }) => {
                 <span style={{ cursor: "pointer" }}>⇅</span>Date</th>
               <th onClick={() => sortByProp("time", "text")}>
                 <span style={{ cursor: "pointer" }}>⇅</span>Time</th>
+              <th>Delete</th>
             </tr>
           </thead>
           <tbody>
@@ -376,6 +401,11 @@ const EventsPage = ({ onEvent }) => {
                 <td>{event.privacy}</td>
                 <td>{event.date}</td>
                 <td>{event.time}</td>
+                <td className="delete-cell" onClick={(e) => handleDeleteEvent(event, index, e)}>
+                  {/* You can use an icon if you have them imported */}
+                  {/* <Trash size={16} /> */}
+                  🗑️
+                </td>
               </tr>
             ))}
           </tbody>

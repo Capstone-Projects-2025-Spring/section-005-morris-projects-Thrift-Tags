@@ -203,6 +203,16 @@
  .countdown-display div {
   color: #3360c8;
  }
+
+ .delete-cell {
+  text-align: center;
+  color: #ff3333;
+  cursor: pointer;
+}
+
+.delete-cell:hover {
+  background-color: #ffeeee;
+}
  /* Responsive styling */
  @media screen and (max-width: 768px) {
   .eventsContainer {
