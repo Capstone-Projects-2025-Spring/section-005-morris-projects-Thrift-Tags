@@ -1,10 +1,37 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import "./HomeMap.css";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, MapCameraChangedEvent } from "@vis.gl/react-google-maps";
+import axios from "axios";
 import NavBar from "../NavBar";
 
 export default function HomeMap() {
-    const position = { lat: 39.9526, lng: -75.1652 };
+    const [userPosition, setUserPosition] = useState({ lat: 48.86, lng: 2.35});
+    const [mapLoaded, setMapLoaded] = useState(false);
+
+    const getUserLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userPos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+                    setUserPosition(userPos);
+                },
+                () => {
+                    alert("Unable to retrieve your location.");
+                    setUserPosition({ lat: 48.8566, lng: 2.3522 });
+                }
+            );
+        } else {
+            alert("Geolocation is not supported by this browser.");
+            setUserPosition({ lat: 48.8566, lng: 2.3522 });
+        }
+    };
+
+    useEffect(() => {
+        getUserLocation();
+    }, []);
 
     return (
         <div className="home-map-container">
@@ -26,8 +53,51 @@ export default function HomeMap() {
 
                 <div className="map-container">
                     <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
-                        <Map zoom={9} center={position} className="google-map" />
+                        <Map zoom={12} center={userPosition} className="google-map"
+                             mapId={process.env.REACT_APP_GOOGLE_MAPS_MAP_ID} onLoad={() => setMapLoaded(true)}>
+                            <AdvancedMarker
+                                position={userPosition}
+                                title="Your Location"
+                            />
+                            <AdvancedMarker
+                                position={{ lat: 39.9612, lng: -75.1551 }}
+                                title="The Wardrobe"
+                            />
+                            <AdvancedMarker
+                                position={{ lat: 39.9385, lng: -75.1492 }}
+                                title="Philly AIDS Thrift"
+                            />
+                            <AdvancedMarker
+                                position={{ lat: 39.9500, lng: -75.1700 }}
+                                title="Urban Exchange Project"
+                            />
+                            <AdvancedMarker
+                                position={{ lat: 39.9498, lng: -75.1673 }}
+                                title="Greene Street Consignment"
+                            />
+                            <AdvancedMarker
+                                position={{ lat: 39.9498, lng: -75.1673 }}
+                                title="Greene Street Consignment"
+                            />
+                            <AdvancedMarker
+                                position={{ lat: 39.9475, lng: -75.1622 }}
+                                title="Buffalo Exchange"
+                            />
+                            <AdvancedMarker
+                                position={{ lat: 39.9391, lng: -75.1523 }}
+                                title="Retrospect Vintage"
+                            />
+                            <InfoWindow position={userPosition}>
+                                <div>Your Current Location</div>
+                            </InfoWindow>
+                        </Map>
                     </APIProvider>
+                    {mapLoaded && (
+                        <button
+                            className="current-location-btn" onClick={getUserLocation}>
+                            Pan to Current Location
+                        </button>
+                    )}
                 </div>
 
                 <div className="reviews-section">
