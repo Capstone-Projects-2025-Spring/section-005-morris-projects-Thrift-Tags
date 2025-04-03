@@ -52,6 +52,7 @@ const LoginPage = ({onLogin}) => {
           const data = userDoc.data();
           if (data.password === password) {
             alert("Login successful!");
+            sessionStorage.setItem('userEmail', email);
             navigate("/home");
           } else {
             alert("Incorrect password.");
