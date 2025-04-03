@@ -104,7 +104,7 @@
 
 .bio-section p {
     margin-bottom: 1rem;
-    color: #666;
+    color: #0a0000;
     line-height: 1.5;
     text-align: left;
 }
@@ -146,7 +146,7 @@
 
 .user-details p {
     margin: 0.5rem 0;
-    color: #666;
+    color: #000000;
 }
 
 .favorites-section h3 {
@@ -165,8 +165,12 @@
 
 .favorite-tag {
     background-color: #6b83bb;
-    color: #fcfdff;
+    color: #000000;
     padding: 6px 12px;
     border-radius: 15px;
     font-size: 0.9rem;
-} 
+}
+
+.favorite-input {
+    color: #000000;
+}
