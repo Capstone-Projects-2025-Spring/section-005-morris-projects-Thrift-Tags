@@ -213,6 +213,150 @@
 .delete-cell:hover {
   background-color: #ffeeee;
 }
+
+/* Add these styles to your eventsPage.css file */
+
+.historyButton {
+  background-color: #889ccd;
+  float: right;
+  margin-right: 15px;
+}
+
+.history-popup {
+  width: 500px;
+  max-width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.no-history {
+  color: white;
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+
+.history-tabs {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.history-tabs button {
+  flex: 1;
+  margin: 0 5px;
+  font-size: 0.85rem;
+  padding: 8px 5px;
+}
+
+.history-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.history-item {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-left: 4px solid #3360c8;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.history-header h4 {
+  margin: 0;
+  color: white;
+}
+
+.history-tag {
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.history-tag.deleted {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.history-tag.expired {
+  background-color: #51cf66;
+  color: white;
+}
+
+.history-item p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+}
+
+.history-item button {
+  margin-top: 10px;
+  background-color: white;
+  width: 100%;
+}
+
+/* Make scrollbars prettier in the history popup */
+.history-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.restore-date-time {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 15px 0;
+}
+
+.restore-date-time h4 {
+  color: white;
+  margin-top: 0;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.date-time-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.date-time-inputs label {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.date-time-inputs input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
  /* Responsive styling */
  @media screen and (max-width: 768px) {
   .eventsContainer {
@@ -237,5 +381,12 @@
   }
   .countdown-display div {
    margin: 5px 0;
+  }
+  .restore-date-time {
+    padding: 10px;
+  }
+  
+  .date-time-inputs {
+    gap: 5px;
   }
  }
