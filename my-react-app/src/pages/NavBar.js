@@ -1,13 +1,31 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Link, useMatch, useResolvedPath} from "react-router-dom"
 import './NavBar.css';
 
 export default function NavBar() {
+
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const toggleMenu = () => {
+        setIsMenuOpen(!isMenuOpen);
+    };
+
     return (
         <nav className="nav">
-            <CustomLink to="/events">Events</CustomLink>
-            <CustomLink to="/home" className="site-title">ThriftTags</CustomLink>
-            <CustomLink to="/profile">Profile</CustomLink>
+            <div className="title-block">
+                <Link to="/home" className="site-title">
+                    ThriftTags
+                </Link>
+            </div>
+            <div className={`menu-toggle ${isMenuOpen ? 'active' : ''}`} onClick={toggleMenu}>
+                <div className={`hamburger ${isMenuOpen ? 'active' : ''}`}></div>
+                <div className={`hamburger ${isMenuOpen ? 'active' : ''}`}></div>
+                <div className={`hamburger ${isMenuOpen ? 'active' : ''}`}></div>
+            </div>
+            <ul className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
+                <CustomLink to="/events">Events</CustomLink>
+                <CustomLink to="/friends">Friends List</CustomLink>
+                <CustomLink to="/profile">Profile</CustomLink>
+            </ul>
         </nav>
     )
 }
