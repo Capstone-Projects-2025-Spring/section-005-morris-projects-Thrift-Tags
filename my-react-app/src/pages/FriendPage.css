@@ -1,0 +1,42 @@
+.friend-page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: sans-serif;
+}
+
+h2, h3 {
+    color: #333;
+}
+
+.search-section input {
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+}
+
+.search-section button,
+.request-item button,
+.friend-item button {
+    margin-left: 6px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 6px;
+    background-color: #4a6cf7;
+    color: white;
+    cursor: pointer;
+}
+
+.remove-button {
+    background-color: red;
+}
+
+.search-result,
+.request-item,
+.friend-item {
+    margin-top: 10px;
+    padding: 8px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+}

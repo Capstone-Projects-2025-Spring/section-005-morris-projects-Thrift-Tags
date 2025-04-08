@@ -15,7 +15,7 @@ const ProfilePage = () => {
         location: "",
         favorites: [],
         reviews: 5,
-        friends: 15,
+        friends: "",
         avatar: null
     });
 
@@ -99,6 +99,10 @@ const ProfilePage = () => {
         navigate('/reviews');
     };
 
+    const handleFriendsClick = () => {
+        navigate('/friends');
+    }
+
     const handleFavoriteChange = (index, value) => {
         const updated = [...editedFavorites];
         updated[index] = value;
@@ -134,7 +138,7 @@ const ProfilePage = () => {
                             <span className="stat-number">{userData.reviews}</span>
                             <span className="stat-label">Reviews</span>
                         </div>
-                        <div className="stat-item">
+                        <div className="stat-item" onClick={handleFriendsClick} style={{ cursor: 'pointer' }}>
                             <span className="stat-number">{userData.friends}</span>
                             <span className="stat-label">Friends</span>
                         </div>

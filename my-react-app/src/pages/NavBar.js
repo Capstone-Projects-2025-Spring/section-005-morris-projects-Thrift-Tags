@@ -8,6 +8,7 @@ export default function NavBar() {
             <CustomLink to="/events">Events</CustomLink>
             <CustomLink to="/home" className="site-title">ThriftTags</CustomLink>
             <CustomLink to="/profile">Profile</CustomLink>
+            {/* <CustomLink to="/friends">Friend</CustomLink> */}
         </nav>
     )
 }
