@@ -7,6 +7,7 @@ import HomeMap from "./pages/map/HomeMap";
 import EventsPage from "./pages/EventsPage";
 import ProfilePage from "./pages/ProfilePage";
 import ReviewsPage from './pages/ReviewsPage';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
 
@@ -21,7 +22,14 @@ function App() {
             <NavBar />
             <Routes>
                 <Route path="/" element={<LoginPage/>}/>
-                <Route path="/home" element={<HomeMap/>}/>
+                <Route 
+                    path="/home" 
+                    element={
+                        <ProtectedRoute>
+                            <HomeMap />
+                        </ProtectedRoute>
+                    } 
+                />
                 <Route path="/events" element={<EventsPage/>}/>
                 <Route path="/profile" element={<ProfilePage/>}/>
                 <Route path="/reviews" element ={<ReviewsPage/>}/>

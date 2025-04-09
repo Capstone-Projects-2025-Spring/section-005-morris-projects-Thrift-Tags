@@ -12,57 +12,82 @@ import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { gapi } from 'gapi-script';
-import {Link, useMatch, useResolvedPath} from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import LoginButton from './Login';
+import { useAuth } from '../../context/AuthContext';
 
 const clientId = "91424131370-ievd7huontv62lvh8g7r0nnsktp4mheh.apps.googleusercontent.com";
 
-const LoginPage = ({onLogin}) => {
+const LoginPage = () => {
+  const navigate = useNavigate();
+  const { signup, login, error: authError } = useAuth();
   const [action, setAction] = useState("Login");
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    if (action === "Sign Up") {
-      try {
+    try {
+      if (action === "Sign Up") {
+        const userCredential = await signup(email, password);
+        
         await setDoc(doc(db, "users", email), {
           username,
           email,
-          password,
           createdAt: new Date().toISOString(),
         });
+
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          username,
+          email,
+          createdAt: new Date().toISOString(),
+          authId: userCredential.user.uid
+        });
+
         alert("Sign up successful!");
-        setAction("Login");
-        setUsername("");
-        setEmail("");
-        setPassword("");
-      } catch (err) {
-        console.error("Error signing up:", err);
-        alert("Sign up failed.");
-      }
-    } else {
-      try {
-        const userDoc = await getDoc(doc(db, "users", email));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          if (data.password === password) {
+        navigate("/home");
+      } else {
+        try {
+          await login(email, password);
+
+          const userDoc = await getDoc(doc(db, "users", email));
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            localStorage.setItem('userData', JSON.stringify(userData));
+            
             alert("Login successful!");
-            sessionStorage.setItem('userEmail', email);
             navigate("/home");
           } else {
-            alert("Incorrect password.");
+            setError("User data not found in database.");
           }
-        } else {
-          alert("User not found.");
+        } catch (err) {
+          console.error("Login error:", err);
+          if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+            setError("Invalid email or password.");
+          } else {
+            setError(err.message);
+          }
         }
-      } catch (err) {
-        console.error("Error logging in:", err);
-        alert("Login failed.");
+      }
+    } catch (err) {
+      console.error("Authentication error:", err);
+      switch (err.code) {
+        case 'auth/email-already-in-use':
+          setError('This email is already registered. Please login instead.');
+          break;
+        case 'auth/invalid-email':
+          setError('Please enter a valid email address.');
+          break;
+        case 'auth/weak-password':
+          setError('Password should be at least 6 characters.');
+          break;
+        default:
+          setError(err.message);
       }
     }
   };
@@ -106,7 +131,6 @@ const LoginPage = ({onLogin}) => {
       });
       if (response.ok) {
         sessionStorage.setItem('id_token', id_token);
-        onLogin();
         navigate('/home');
       }
     } catch (error) {
@@ -123,102 +147,107 @@ const LoginPage = ({onLogin}) => {
     }
   };
 
-
   return (
-      <div className="login-page">
-        <div className="background">
-          <div className="slide" style={{backgroundImage: `url(${bg1})`}}></div>
-          <div className="slide" style={{backgroundImage: `url(${bg2})`}}></div>
-          <div className="slide" style={{backgroundImage: `url(${bg3})`}}></div>
-          <div className="slide" style={{backgroundImage: `url(${bg4})`}}></div>
-          <div className="slide" style={{backgroundImage: `url(${bg5})`}}></div>
+    <div className="login-page">
+      <div className="background">
+        <div className="slide" style={{backgroundImage: `url(${bg1})`}}></div>
+        <div className="slide" style={{backgroundImage: `url(${bg2})`}}></div>
+        <div className="slide" style={{backgroundImage: `url(${bg3})`}}></div>
+        <div className="slide" style={{backgroundImage: `url(${bg4})`}}></div>
+        <div className="slide" style={{backgroundImage: `url(${bg5})`}}></div>
+      </div>
+
+      <div className="body-login">
+        <div className="left-side">
+          <h1>ThriftTags</h1>
+          <p>
+            Welcome to ThriftTags! ThriftTags aims to connect our thrifting
+            community to share locations they frequent, from common to unique
+            finds! We encourage users to share their finds with others and
+            make new connections.
+          </p>
         </div>
 
-        <div className="body-login">
-          <div className="left-side">
-            <h1>ThriftTags</h1>
-            <p>
-              Welcome to ThriftTags! ThriftTags aims to connect our thrifting
-              community to share locations they frequent, from common to unique
-              finds! We encourage users to share their finds with others and
-              make new connections.
-            </p>
+        <div className="container-login">
+          <div className="header">
+            <div className="text">{action}</div>
+            <div className="underline"></div>
           </div>
 
-          <form className="container-login" onSubmit={handleSubmit}>
-            <div className="header">
-              <div className="text">{action}</div>
-              <div className="underline"></div>
-            </div>
-
+          <form onSubmit={handleSubmit}>
             <div className="inputs">
               {action === "Sign Up" && (
-                  <div className="input">
-                    <img src={userIcon} alt="Username"/>
-                    <input
-                        type="text"
-                        placeholder="Username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                    />
-                  </div>
+                <div className="input">
+                  <img src={userIcon} alt="Username"/>
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
+                </div>
               )}
               <div className="input">
                 <img src={emailIcon} alt="Email"/>
                 <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
               </div>
               <div className="input">
                 <img src={passwordIcon} alt="Password"/>
                 <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
               </div>
+              {error && (
+                <div className="error-message" style={{color: 'red', textAlign: 'center'}}>
+                  {error}
+                </div>
+              )}
             </div>
 
             {action === "Login" && (
-                <div className="forgot-password">
-                  Lost password? <span>Click here!</span>
-                </div>
+              <div className="forgot-password">
+                Lost password? <span>Click here!</span>
+              </div>
             )}
 
-            {/* Google Login Button */}
-            <div className="google-login">
-              <LoginButton onClick={handleLogin}>Login with Google</LoginButton>
-            </div>
-
-            <div className="demo-button">
-              <button onClick={() => navigate('/home')}>Go to Home</button>
-            </div>
+            <button 
+              type="submit" 
+              className="submit-button"
+            >
+              {action}
+            </button>
 
             <div className="submit-container">
               <button
-                  type="button"
-                  className={action === "Login" ? "submit gray" : "submit"}
-                  onClick={() => setAction("Sign Up")}
+                type="button"
+                className={action === "Login" ? "submit" : "submit gray"}
+                onClick={() => setAction("Sign Up")}
               >
                 Sign Up
               </button>
               <button
-                  type="submit"
-                  className={action === "Sign Up" ? "submit gray" : "submit"}
+                type="button"
+                className={action === "Sign Up" ? "submit" : "submit gray"}
+                onClick={() => setAction("Login")}
               >
-                {action}
+                Login
               </button>
             </div>
           </form>
         </div>
       </div>
+    </div>
   );
 };
 
