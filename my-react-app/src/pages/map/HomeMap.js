@@ -7,6 +7,7 @@ import NavBar from "../NavBar";
 export default function HomeMap() {
     const [userPosition, setUserPosition] = useState({ lat: 48.86, lng: 2.35});
     const [mapLoaded, setMapLoaded] = useState(false);
+    const [activeStoreId, setActiveStoreId] = useState(null);
 
     const getUserLocation = () => {
         if (navigator.geolocation) {
@@ -33,9 +34,41 @@ export default function HomeMap() {
         getUserLocation();
     }, []);
 
+    const stores = [
+      {
+        id: 1,
+        name: "The Wardrobe",
+        position: { lat: 39.9612, lng: -75.1551 },
+      },
+      {
+        id: 2,
+        name: "Philly AIDS Thrift",
+        position: { lat: 39.9385, lng: -75.1492 },
+      },
+      {
+        id: 3,
+        name: "Urban Exchange Project",
+        position: { lat: 39.95, lng: -75.17 },
+      },
+      {
+        id: 4,
+        name: "Greene Street Consignment",
+        position: { lat: 39.9498, lng: -75.1673 },
+      },
+      {
+        id: 5,
+        name: "Buffalo Exchange",
+        position: { lat: 39.9475, lng: -75.1622 },
+      },
+      {
+        id: 6,
+        name: "Retrospect Vintage",
+        position: { lat: 39.9391, lng: -75.1523 },
+      },
+    ];
+
     return (
         <div className="home-map-container">
-
             <div className="city-title">
                 <h2>Philadelphia</h2>
                 <p>PA</p>
@@ -57,36 +90,33 @@ export default function HomeMap() {
                              mapId={process.env.REACT_APP_GOOGLE_MAPS_MAP_ID} onLoad={() => setMapLoaded(true)}>
                             <AdvancedMarker
                                 position={userPosition}
-                                title="Your Location"
-                            />
-                            <AdvancedMarker
-                                position={{ lat: 39.9612, lng: -75.1551 }}
-                                title="The Wardrobe"
-                            />
-                            <AdvancedMarker
-                                position={{ lat: 39.9385, lng: -75.1492 }}
-                                title="Philly AIDS Thrift"
-                            />
-                            <AdvancedMarker
-                                position={{ lat: 39.9500, lng: -75.1700 }}
-                                title="Urban Exchange Project"
-                            />
-                            <AdvancedMarker
-                                position={{ lat: 39.9498, lng: -75.1673 }}
-                                title="Greene Street Consignment"
-                            />
-                            <AdvancedMarker
-                                position={{ lat: 39.9498, lng: -75.1673 }}
-                                title="Greene Street Consignment"
-                            />
-                            <AdvancedMarker
-                                position={{ lat: 39.9475, lng: -75.1622 }}
-                                title="Buffalo Exchange"
-                            />
-                            <AdvancedMarker
-                                position={{ lat: 39.9391, lng: -75.1523 }}
-                                title="Retrospect Vintage"
-                            />
+                                title="Your Location">
+                              <Pin background="#3366cc" borderColor="#003399" glyphColor="white" />
+                            </AdvancedMarker>
+                            {stores.map((store) => (
+                                <AdvancedMarker
+                                    key={store.id}
+                                    position={store.position}
+                                    title={store.name}
+                                    onClick={() =>
+                                        setActiveStoreId((prev) => (prev === store.id ? null : store.id))
+                                    }
+                                >
+                                    <Pin />
+                                </AdvancedMarker>
+                            ))}
+                            {stores.map(
+                                (store) =>
+                                    activeStoreId === store.id && (
+                                        <InfoWindow
+                                            key={`info-${store.id}`}
+                                            position={store.position}
+                                            onCloseClick={() => setActiveStoreId(null)}
+                                        >
+                                            <div>{store.name}</div>
+                                        </InfoWindow>
+                                    )
+                                )}
                             <InfoWindow position={userPosition}>
                                 <div>Your Current Location</div>
                             </InfoWindow>
