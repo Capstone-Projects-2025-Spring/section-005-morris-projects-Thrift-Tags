@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import '../eventsPage.css';
+import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy } from "firebase/firestore";
+import { db } from '../firebase'; // Make sure you have this file set up with your Firebase config
 
 const EventsPage = ({ onEvent }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -20,30 +22,31 @@ const EventsPage = ({ onEvent }) => {
   
   // State for event history
   const [eventHistory, setEventHistory] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  
+  // Fetch events from Firestore
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const q = query(collection(db, "events"), orderBy("date"));
+        const querySnapshot = await getDocs(q);
+        const eventsData = querySnapshot.docs.map(doc => ({
+          id: doc.id, // Store the document ID
+          ...doc.data()
+        }));
+        setEvents(eventsData);
+        setFilteredEvents(eventsData);
+      } catch (error) {
+        console.error("Error fetching events: ", error);
+      }
+    };
 
-  const [events, setEvents] = useState([
-    {
-      name: "Thrift Sales",
-      location: "Philadelphia, Pennsylvania",
-      host: "Me",
-      privacy: "Private",
-      date: "2025-07-15",
-      time: "14:00"
-    },
-    {
-      name: "Your Thrift Event",
-      location: "Atlanta, Georgia",
-      host: "Kevin",
-      privacy: "Public",
-      date: "2024-08-20",
-      time: "10:30"
-    }
-  ]);
-
-  const [filteredEvents, setFilteredEvents] = useState(events);
+    fetchEvents();
+  }, []);
 
   // Function to move event to history
-  const moveToHistory = (eventToMove, reason) => {
+  const moveToHistory = async (eventToMove, reason) => {
     // Generate a unique key for the event
     const eventKey = `${eventToMove.name}-${eventToMove.date}-${eventToMove.time}`;
     
@@ -63,16 +66,21 @@ const EventsPage = ({ onEvent }) => {
       reason: reason // "deleted" or "expired"
     };
     
-    // Add to history
+    // Add to history - in a real app, you might want to store this in Firestore too
     setEventHistory(prevHistory => [...prevHistory, historyEvent]);
     
     // Remove from active events list if expired
     if (reason === "expired") {
-      const updatedEvents = events.filter(event => {
-        const currentEventKey = `${event.name}-${event.date}-${event.time}`;
-        return currentEventKey !== eventKey;
-      });
+      // If we have a document ID, delete from Firestore
+      if (eventToMove.id) {
+        try {
+          await deleteDoc(doc(db, "events", eventToMove.id));
+        } catch (error) {
+          console.error("Error removing expired event: ", error);
+        }
+      }
       
+      const updatedEvents = events.filter(event => event.id !== eventToMove.id);
       setEvents(updatedEvents);
       setFilteredEvents(updatedEvents);
       
@@ -192,26 +200,36 @@ const EventsPage = ({ onEvent }) => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (eventName.trim() !== "") {
       const newEvent = {
         name: eventName,
         location: eventLocation || "TBD",
         host: eventHost || "Me",
-        privacy: eventPrivacy || "Public",
+        privacy: eventPrivacy === "Private" ? true : false, // Convert to boolean for Firestore
         date: eventDate || new Date().toISOString().split('T')[0],
         time: eventTime || "00:00"
       };
 
-      const updatedEvents = [...events, newEvent];
-      setEvents(updatedEvents);
-      setFilteredEvents(updatedEvents);
+      try {
+        // Add document to Firestore
+        const docRef = await addDoc(collection(db, "events"), newEvent);
+        // Add the document ID to our event object
+        const newEventWithId = { ...newEvent, id: docRef.id, privacy: eventPrivacy };
+        
+        const updatedEvents = [...events, newEventWithId];
+        setEvents(updatedEvents);
+        setFilteredEvents(updatedEvents);
 
-      if (onEvent) {
-        onEvent(updatedEvents);
+        if (onEvent) {
+          onEvent(updatedEvents);
+        }
+
+        closePopup();
+      } catch (error) {
+        console.error("Error adding document: ", error);
+        alert("Error creating event. Please try again.");
       }
-
-      closePopup();
     }
   };
 
@@ -265,7 +283,9 @@ const EventsPage = ({ onEvent }) => {
       event.name.toLowerCase().includes(lowercasedFilter) ||
       event.location.toLowerCase().includes(lowercasedFilter) ||
       event.host.toLowerCase().includes(lowercasedFilter) ||
-      event.privacy.toLowerCase().includes(lowercasedFilter) ||
+      (typeof event.privacy === 'string' ? 
+        event.privacy.toLowerCase().includes(lowercasedFilter) : 
+        (event.privacy ? "private" : "public").includes(lowercasedFilter)) ||
       event.date.toLowerCase().includes(lowercasedFilter) ||
       event.time.toLowerCase().includes(lowercasedFilter)
     );
@@ -341,61 +361,91 @@ const EventsPage = ({ onEvent }) => {
     return hostLower === "me" || hostLower === "myself";
   };
 
-  const handleDeleteEvent = (eventToDelete, index, e) => {
+  const handleDeleteEvent = async (eventToDelete, index, e) => {
     // Stop the event from bubbling up to the row click handler
     e.stopPropagation();
 
     // Show confirmation dialog
     if (window.confirm(`Are you sure you want to delete "${eventToDelete.name}"?`)) {
-      // Add to history before removing
-      moveToHistory(eventToDelete, "deleted");
-      
-      const updatedEvents = events.filter((_, i) => i !== index);
-      setEvents(updatedEvents);
-      setFilteredEvents(updatedEvents.filter(event =>
-        event.name.toLowerCase().includes(filterInput.toLowerCase()) ||
-        event.location.toLowerCase().includes(filterInput.toLowerCase()) ||
-        event.host.toLowerCase().includes(filterInput.toLowerCase()) ||
-        event.privacy.toLowerCase().includes(filterInput.toLowerCase()) ||
-        event.date.toLowerCase().includes(filterInput.toLowerCase()) ||
-        event.time.toLowerCase().includes(filterInput.toLowerCase())
-      ));
+      try {
+        // Delete from Firestore if we have an ID
+        if (eventToDelete.id) {
+          await deleteDoc(doc(db, "events", eventToDelete.id));
+        }
+        
+        // Add to history before removing
+        moveToHistory(eventToDelete, "deleted");
+        
+        const updatedEvents = events.filter(event => event.id !== eventToDelete.id);
+        setEvents(updatedEvents);
+        setFilteredEvents(updatedEvents.filter(event =>
+          event.name.toLowerCase().includes(filterInput.toLowerCase()) ||
+          event.location.toLowerCase().includes(filterInput.toLowerCase()) ||
+          event.host.toLowerCase().includes(filterInput.toLowerCase()) ||
+          (typeof event.privacy === 'string' ? 
+            event.privacy.toLowerCase().includes(filterInput.toLowerCase()) : 
+            (event.privacy ? "private" : "public").includes(filterInput.toLowerCase())) ||
+          event.date.toLowerCase().includes(filterInput.toLowerCase()) ||
+          event.time.toLowerCase().includes(filterInput.toLowerCase())
+        ));
 
-      // Notify parent component if needed
-      if (onEvent) {
-        onEvent(updatedEvents);
+        // Notify parent component if needed
+        if (onEvent) {
+          onEvent(updatedEvents);
+        }
+      } catch (error) {
+        console.error("Error deleting document: ", error);
+        alert("Error deleting event. Please try again.");
       }
     }
   };
 
   // Function to restore an event from history with option to update date/time
-  const restoreEvent = () => {
+  const restoreEvent = async () => {
     if (!eventToRestore) return;
     
-    // Create a new event object without history-specific properties and with updated date/time
-    const { removedOn, reason, ...restoredEventBase } = eventToRestore;
-    const restoredEvent = {
-      ...restoredEventBase,
-      date: eventDate,
-      time: eventTime
-    };
-    
-    // Add back to active events
-    const updatedEvents = [...events, restoredEvent];
-    setEvents(updatedEvents);
-    setFilteredEvents(updatedEvents);
-    
-    // Remove from history
-    const updatedHistory = eventHistory.filter((_, i) => i !== restoreEventIndex);
-    setEventHistory(updatedHistory);
-    
-    // Notify parent if needed
-    if (onEvent) {
-      onEvent(updatedEvents);
+    try {
+      // Create a new event object without history-specific properties and with updated date/time
+      const { removedOn, reason, id, ...restoredEventBase } = eventToRestore;
+      const restoredEvent = {
+        ...restoredEventBase,
+        date: eventDate,
+        time: eventTime,
+        privacy: typeof restoredEventBase.privacy === 'string' ? 
+          restoredEventBase.privacy === "Private" : restoredEventBase.privacy
+      };
+      
+      // Add back to Firestore
+      const docRef = await addDoc(collection(db, "events"), restoredEvent);
+      
+      // Add to local state with the new document ID
+      const restoredEventWithId = { 
+        ...restoredEvent, 
+        id: docRef.id,
+        privacy: typeof restoredEvent.privacy === 'boolean' ? 
+          (restoredEvent.privacy ? "Private" : "Public") : restoredEvent.privacy
+      };
+      
+      // Update state
+      const updatedEvents = [...events, restoredEventWithId];
+      setEvents(updatedEvents);
+      setFilteredEvents(updatedEvents);
+      
+      // Remove from history
+      const updatedHistory = eventHistory.filter((_, i) => i !== restoreEventIndex);
+      setEventHistory(updatedHistory);
+      
+      // Notify parent if needed
+      if (onEvent) {
+        onEvent(updatedEvents);
+      }
+      
+      // Close popup
+      closeRestorePopup();
+    } catch (error) {
+      console.error("Error restoring event: ", error);
+      alert("Error restoring event. Please try again.");
     }
-    
-    // Close popup
-    closeRestorePopup();
   };
 
   // Remove duplicate events from history
@@ -419,23 +469,35 @@ const EventsPage = ({ onEvent }) => {
 
   // Check for expired events on component mount and when events change
   useEffect(() => {
-    const checkForExpiredEvents = () => {
+    const checkForExpiredEvents = async () => {
       const now = new Date();
-      const expiredEventIndices = [];
+      const expiredEventIds = [];
       
-      events.forEach((event, index) => {
+      events.forEach((event) => {
         const eventDateTime = new Date(`${event.date}T${event.time}`);
         if (eventDateTime <= now) {
-          expiredEventIndices.push(index);
+          expiredEventIds.push(event.id);
           
           // Only move to history if not already there
           moveToHistory(event, "expired");
         }
       });
       
-      // Remove expired events from the events list (if any)
-      if (expiredEventIndices.length > 0) {
-        const updatedEvents = events.filter((_, index) => !expiredEventIndices.includes(index));
+      // Remove expired events from Firestore and local state
+      if (expiredEventIds.length > 0) {
+        // Delete from Firestore
+        for (const id of expiredEventIds) {
+          if (id) {
+            try {
+              await deleteDoc(doc(db, "events", id));
+            } catch (error) {
+              console.error("Error removing expired event: ", error);
+            }
+          }
+        }
+        
+        // Update local state
+        const updatedEvents = events.filter((event) => !expiredEventIds.includes(event.id));
         setEvents(updatedEvents);
         setFilteredEvents(updatedEvents);
         
@@ -454,6 +516,14 @@ const EventsPage = ({ onEvent }) => {
     
     return () => clearInterval(intervalId);
   }, [events]);
+
+  // Function to format privacy value for display
+  const formatPrivacy = (privacy) => {
+    if (typeof privacy === 'boolean') {
+      return privacy ? "Private" : "Public";
+    }
+    return privacy;
+  };
 
   return (
     <div className="body-wrapper">
@@ -550,7 +620,7 @@ const EventsPage = ({ onEvent }) => {
                 <p><strong>Event Name:</strong> {selectedEvent.name}</p>
                 <p><strong>Location:</strong> {selectedEvent.location}</p>
                 <p><strong>Host:</strong> {selectedEvent.host}</p>
-                <p><strong>Privacy:</strong> {selectedEvent.privacy}</p>
+                <p><strong>Privacy:</strong> {formatPrivacy(selectedEvent.privacy)}</p>
                 <p><strong>Date:</strong> {selectedEvent.date}</p>
                 <p><strong>Time:</strong> {selectedEvent.time}</p>
               </div>
@@ -609,7 +679,7 @@ const EventsPage = ({ onEvent }) => {
                 <p><strong>Event Name:</strong> {eventToRestore.name}</p>
                 <p><strong>Location:</strong> {eventToRestore.location}</p>
                 <p><strong>Host:</strong> {eventToRestore.host}</p>
-                <p><strong>Privacy:</strong> {eventToRestore.privacy}</p>
+                <p><strong>Privacy:</strong> {formatPrivacy(eventToRestore.privacy)}</p>
               </div>
               
               <div className="restore-date-time">
@@ -660,7 +730,7 @@ const EventsPage = ({ onEvent }) => {
           <tbody>
             {filteredEvents.map((event, index) => (
               <tr
-                key={index}
+                key={event.id || index}
                 className={isMyEvent(event.host) ? "my-event-row" : ""}
                 onClick={() => openDetailsPopup(event)}
                 style={{ cursor: "pointer" }}
@@ -668,7 +738,7 @@ const EventsPage = ({ onEvent }) => {
                 <td>{event.name}</td>
                 <td>{event.location}</td>
                 <td>{event.host}</td>
-                <td>{event.privacy}</td>
+                <td>{formatPrivacy(event.privacy)}</td>
                 <td>{event.date}</td>
                 <td>{event.time}</td>
                 <td className="delete-cell" onClick={(e) => handleDeleteEvent(event, index, e)}>
