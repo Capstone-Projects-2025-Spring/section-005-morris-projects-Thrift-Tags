@@ -33,11 +33,32 @@ const LoginPage = () => {
 
     try {
       if (action === "Sign Up") {
-        await signup(email, password);
+        // First create the user in Firebase Authentication
+        const userCredential = await signup(email, password);
+        
+        // Then store user data in Firestore
+        const userRef = doc(db, 'users', email);
+        await setDoc(userRef, {
+          username: username,
+          email: email,
+          createdAt: new Date(),
+        });
+
+        navigate('/home');
       } else {
+        // Login case
         await login(email, password);
+        
+        // Verify user exists in Firestore
+        const userRef = doc(db, 'users', email);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+          navigate('/home');
+        } else {
+          setError("User not found in database");
+        }
       }
-      navigate('/home');
     } catch (error) {
       setError(error.message);
     }
