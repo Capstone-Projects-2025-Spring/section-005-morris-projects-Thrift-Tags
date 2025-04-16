@@ -1,8 +1,10 @@
 import React, {useEffect, useState} from "react";
 import "./HomeMap.css";
+import {db} from "../../firebase";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, MapCameraChangedEvent } from "@vis.gl/react-google-maps";
 import axios from "axios";
 import NavBar from "../NavBar";
+import StoreTab from "./StoreTab";
 
 export default function HomeMap() {
     const [userPosition, setUserPosition] = useState({ lat: 48.86, lng: 2.35});
@@ -75,6 +77,7 @@ export default function HomeMap() {
             </div>
 
             <div className="content-container">
+                <StoreTab/>
                 <div className="location-info">
                     <h3>Location 1 Example</h3>
                     <p>413 N 4th St Philadelphia, PA 19123</p>
