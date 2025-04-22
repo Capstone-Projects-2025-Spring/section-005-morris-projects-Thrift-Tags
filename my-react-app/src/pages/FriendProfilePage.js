@@ -4,10 +4,10 @@ import { db } from '../firebase';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import './FriendProfilePage.css';
 
+
 const FriendProfilePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
   const friendEmail = location.state?.email || "";
 
   const [friendData, setFriendData] = useState({
@@ -30,7 +30,6 @@ const FriendProfilePage = () => {
     const fetchFriendData = async () => {
       if (!friendEmail) return;
       try {
-        
         // Fetch friend document from Firestore
         const userDoc = await getDoc(doc(db, "users", friendEmail));
         // Count number of reviews by this user
