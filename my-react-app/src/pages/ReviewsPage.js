@@ -4,15 +4,20 @@ import halfStar from '../images/Half_Star.png';
 import emptyStar from '../images/gray star.png';
 import { db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import { useLocation } from 'react-router-dom';
 
 const ReviewsPage = () => {
+    const location = useLocation();
+    const friendEmail = location.state?.email || null;
+    const friendName = location.state?.username || null;
+
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchReviews = async () => {
             try {
-                const email = sessionStorage.getItem('userEmail');
+                const email = friendEmail || sessionStorage.getItem('userEmail');
                 if (!email) {
                     console.log("No user email found");
                     setLoading(false);
@@ -39,7 +44,7 @@ const ReviewsPage = () => {
         };
 
         fetchReviews();
-    }, []);
+    }, [friendEmail]);
 
     const renderStars = (rating) => {
         const fullStars = Math.floor(rating);
@@ -73,11 +78,20 @@ const ReviewsPage = () => {
         return <div className="reviews-container">Loading...</div>;
     }
 
+    const displayTitle = friendEmail 
+        ? `${friendName || "This user"}'s Reviews` 
+        : "My Reviews";
+
+    const emptyMessage = friendEmail 
+        ? `${friendName || "This user"} hasn't written any reviews yet.` 
+        : "You haven't written any reviews yet.";
+
     return (
         <div className="reviews-container">
             <h1>Reviews</h1>
+            <h1>{displayTitle}</h1>
             {reviews.length === 0 ? (
-                <p className="no-reviews">You haven't written any reviews yet.</p>
+                <p className="no-reviews">{emptyMessage}</p>
             ) : (
                 <div className="reviews-list">
                     {reviews.map(review => (
@@ -98,4 +112,4 @@ const ReviewsPage = () => {
     );
 };
 
-export default ReviewsPage; 
+export default ReviewsPage;

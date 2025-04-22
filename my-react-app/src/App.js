@@ -9,6 +9,8 @@ import ProfilePage from "./pages/ProfilePage";
 import ReviewsPage from './pages/ReviewsPage';
 import FriendPage from './pages/FriendPage';
 import AddReviewPage from './pages/AddReviewPage';
+import FriendProfilePage from './pages/FriendProfilePage';
+
 
 function App() {
 
@@ -29,6 +31,7 @@ function App() {
                 <Route path="/reviews" element={<ReviewsPage/>}/>
                 <Route path="/friends" element={<FriendPage/>}/>
                 <Route path="/add-review" element={<AddReviewPage/>}/>
+                <Route path="/friendprofile" element={<FriendProfilePage/>}/>
             </Routes>
         </Router>
     );
