@@ -15,7 +15,7 @@ const ProfilePage = () => {
         location: "",
         favorites: [],
         reviews: 0,
-        friends: 15,
+        friends: 0,
         avatar: null
     });
 
@@ -41,6 +41,15 @@ const ProfilePage = () => {
                 const reviewsSnapshot = await getDocs(reviewsQuery);
                 const reviewCount = reviewsSnapshot.size;
 
+                // Fetch friend count
+                let friendCount = 0;
+
+                if (userDoc.exists()) {
+                  const userData = userDoc.data();
+                  const friends = userData.friends || [];
+                  friendCount = friends.length;
+                }
+
                 if (userDoc.exists()) {
                     const data = userDoc.data();
                     setUserData({
@@ -51,7 +60,7 @@ const ProfilePage = () => {
                         location: data.location || "",
                         favorites: data.favorites || [],
                         reviews: reviewCount, // Use actual review count
-                        friends: data.friends || 15,
+                        friends: friendCount,
                         avatar: data.avatar || null
                     });
 
