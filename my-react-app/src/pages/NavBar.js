@@ -24,6 +24,8 @@ export default function NavBar() {
             <ul className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
                 <CustomLink to="/events">Events</CustomLink>
                 <CustomLink to="/friends">Friends</CustomLink>
+                <CustomLink to="/add-review">Add Review</CustomLink>
+                <CustomLink to="/reviews">Reviews</CustomLink>
                 <CustomLink to="/profile">Profile</CustomLink>
             </ul>
         </nav>
