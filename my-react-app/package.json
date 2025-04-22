@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "proxy": "https://maps.googleapis.com",
     "@firebase/auth": "^1.6.0",
     "@firebase/firestore": "^4.4.0",
     "@react-oauth/google": "^0.12.1",
@@ -11,8 +12,7 @@
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^13.5.0",
     "@vis.gl/react-google-maps": "^1.5.2",
-    "axios": "^1.8.4",
-    "firebase": "^10.8.0",
+    "firebase": "^11.5.0",
     "gapi-script": "^1.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

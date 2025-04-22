@@ -8,6 +8,8 @@ import EventsPage from "./pages/EventsPage";
 import ProfilePage from "./pages/ProfilePage";
 import ReviewsPage from './pages/ReviewsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import FriendPage from './pages/FriendPage';
+import AddReviewPage from './pages/AddReviewPage';
 
 function App() {
 
@@ -19,7 +21,7 @@ function App() {
 
     return(
         <Router>
-            <NavBar />
+            <NavBar/>
             <Routes>
                 <Route path="/" element={<LoginPage/>}/>
                 <Route 
@@ -32,7 +34,9 @@ function App() {
                 />
                 <Route path="/events" element={<EventsPage/>}/>
                 <Route path="/profile" element={<ProfilePage/>}/>
-                <Route path="/reviews" element ={<ReviewsPage/>}/>
+                <Route path="/reviews" element={<ReviewsPage/>}/>
+                <Route path="/friends" element={<FriendPage/>}/>
+                <Route path="/add-review" element={<AddReviewPage/>}/>
             </Routes>
         </Router>
     );

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './ProfilePage.css';
 import { useNavigate } from 'react-router-dom';
 import { db } from "../firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 
 const ProfilePage = () => {
     const navigate = useNavigate();
@@ -14,7 +14,7 @@ const ProfilePage = () => {
         bio: "",
         location: "",
         favorites: [],
-        reviews: 5,
+        reviews: 0,
         friends: 15,
         avatar: null
     });
@@ -30,7 +30,17 @@ const ProfilePage = () => {
                 const email = sessionStorage.getItem('userEmail');
                 if (!email) return;
 
+                // Fetch user data
                 const userDoc = await getDoc(doc(db, "users", email));
+                
+                // Fetch review count
+                const reviewsQuery = query(
+                    collection(db, "reviews"),
+                    where("userEmail", "==", email)
+                );
+                const reviewsSnapshot = await getDocs(reviewsQuery);
+                const reviewCount = reviewsSnapshot.size;
+
                 if (userDoc.exists()) {
                     const data = userDoc.data();
                     setUserData({
@@ -40,7 +50,7 @@ const ProfilePage = () => {
                         bio: data.bio || "",
                         location: data.location || "",
                         favorites: data.favorites || [],
-                        reviews: data.reviews || 5,
+                        reviews: reviewCount, // Use actual review count
                         friends: data.friends || 15,
                         avatar: data.avatar || null
                     });
@@ -99,6 +109,10 @@ const ProfilePage = () => {
         navigate('/reviews');
     };
 
+    const handleFriendsClick = () => {
+        navigate('/friends');
+    }
+
     const handleFavoriteChange = (index, value) => {
         const updated = [...editedFavorites];
         updated[index] = value;
@@ -134,7 +148,7 @@ const ProfilePage = () => {
                             <span className="stat-number">{userData.reviews}</span>
                             <span className="stat-label">Reviews</span>
                         </div>
-                        <div className="stat-item">
+                        <div className="stat-item" onClick={handleFriendsClick} style={{ cursor: 'pointer' }}>
                             <span className="stat-number">{userData.friends}</span>
                             <span className="stat-label">Friends</span>
                         </div>
