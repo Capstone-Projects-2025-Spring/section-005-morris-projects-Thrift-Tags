@@ -88,7 +88,6 @@ const ReviewsPage = () => {
 
     return (
         <div className="reviews-container">
-            <h1>Reviews</h1>
             <h1>{displayTitle}</h1>
             {reviews.length === 0 ? (
                 <p className="no-reviews">{emptyMessage}</p>
