@@ -14,13 +14,13 @@ import { useNavigate } from "react-router-dom";
 import { gapi } from 'gapi-script';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import LoginButton from './Login';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext'; // from GB
 
 const clientId = "91424131370-ievd7huontv62lvh8g7r0nnsktp4mheh.apps.googleusercontent.com";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { signup, login, error: authError } = useAuth();
+  const { signup, login, error: authError } = useAuth(); // from GB
   const [action, setAction] = useState("Login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,26 +33,22 @@ const LoginPage = () => {
 
     try {
       if (action === "Sign Up") {
-        // First create the user in Firebase Authentication
         const userCredential = await signup(email, password);
-        
-        // Then store user data in Firestore
+
         const userRef = doc(db, 'users', email);
         await setDoc(userRef, {
-          username: username,
-          email: email,
-          createdAt: new Date(),
+          username,
+          email,
+          createdAt: new Date().toISOString(),
         });
 
         navigate('/home');
       } else {
-        // Login case
         await login(email, password);
-        
-        // Verify user exists in Firestore
+
         const userRef = doc(db, 'users', email);
         const userDoc = await getDoc(userRef);
-        
+
         if (userDoc.exists()) {
           navigate('/home');
         } else {
@@ -85,12 +81,12 @@ const LoginPage = () => {
 
   const handleLogin = () => {
     const auth2 = gapi.auth2.getAuthInstance();
-    auth2.signIn({ prompt: 'select_account' })  // 'select_account' will trigger the popup
-        .then(() => {
-          const googleUser = auth2.currentUser.get();
-          const id_token = googleUser.getAuthResponse().id_token;
-          authenticate(id_token);
-        });
+    auth2.signIn({ prompt: 'select_account' })
+      .then(() => {
+        const googleUser = auth2.currentUser.get();
+        const id_token = googleUser.getAuthResponse().id_token;
+        authenticate(id_token);
+      });
   };
 
   const authenticate = async (id_token) => {
@@ -120,100 +116,107 @@ const LoginPage = () => {
   };
 
   return (
-      <div className="login-page">
-        <div className="background">
-          <div className="slide" style={{backgroundImage: `url(${bg1})`}}></div>
-          <div className="slide" style={{backgroundImage: `url(${bg2})`}}></div>
-          <div className="slide" style={{backgroundImage: `url(${bg3})`}}></div>
-          <div className="slide" style={{backgroundImage: `url(${bg4})`}}></div>
-          <div className="slide" style={{backgroundImage: `url(${bg5})`}}></div>
+    <div className="login-page">
+      <div className="background">
+        <div className="slide" style={{ backgroundImage: `url(${bg1})` }}></div>
+        <div className="slide" style={{ backgroundImage: `url(${bg2})` }}></div>
+        <div className="slide" style={{ backgroundImage: `url(${bg3})` }}></div>
+        <div className="slide" style={{ backgroundImage: `url(${bg4})` }}></div>
+        <div className="slide" style={{ backgroundImage: `url(${bg5})` }}></div>
+      </div>
+
+      <div className="body-login">
+        <div className="left-side">
+          <h1>ThriftTags</h1>
+          <p>
+            Welcome to ThriftTags! ThriftTags aims to connect our thrifting
+            community to share locations they frequent, from common to unique
+            finds! We encourage users to share their finds with others and
+            make new connections.
+          </p>
         </div>
 
-        <div className="body-login">
-          <div className="left-side">
-            <h1>ThriftTags</h1>
-            <p>
-              Welcome to ThriftTags! ThriftTags aims to connect our thrifting
-              community to share locations they frequent, from common to unique
-              finds! We encourage users to share their finds with others and
-              make new connections.
-            </p>
+        <form className="container-login" onSubmit={handleSubmit}>
+          <div className="header">
+            <div className="text">{action}</div>
+            <div className="underline"></div>
           </div>
 
-          <form className="container-login" onSubmit={handleSubmit}>
-            <div className="header">
-              <div className="text">{action}</div>
-              <div className="underline"></div>
-            </div>
-
-            <div className="inputs">
-              {action === "Sign Up" && (
-                  <div className="input">
-                    <img src={userIcon} alt="Username"/>
-                    <input
-                        type="text"
-                        placeholder="Username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                    />
-                  </div>
-              )}
+          <div className="inputs">
+            {action === "Sign Up" && (
               <div className="input">
-                <img src={emailIcon} alt="Email"/>
+                <img src={userIcon} alt="Username" />
                 <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
                 />
               </div>
-              <div className="input">
-                <img src={passwordIcon} alt="Password"/>
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-              </div>
-            </div>
-
-            {action === "Login" && (
-                <div className="forgot-password">
-                  Lost password? <span>Click here!</span>
-                </div>
             )}
-
-            {/* Google Login Button */}
-            <div className="google-login">
-              <LoginButton onClick={handleLogin}>Login with Google</LoginButton>
+            <div className="input">
+              <img src={emailIcon} alt="Email" />
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
-
-            <div className="demo-button">
-              <button onClick={() => navigate('/home')}>Go to Home</button>
+            <div className="input">
+              <img src={passwordIcon} alt="Password" />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
+          </div>
 
-            <div className="submit-container">
-              <button
-                  type="button"
-                  className={action === "Login" ? "submit gray" : "submit"}
-                  onClick={() => setAction("Sign Up")}
-              >
-                Sign Up
-              </button>
-              <button
-                  type="submit"
-                  className={action === "Sign Up" ? "submit gray" : "submit"}
-              >
-                {action}
-              </button>
+          {action === "Login" && (
+            <div className="forgot-password">
+              Lost password? <span>Click here!</span>
             </div>
-          </form>
+          )}
+
+          {/* Error message */}
+          {error && <div className="error-message">{error}</div>}
+
+          <div className="google-login">
+            <LoginButton onClick={handleLogin}>Login with Google</LoginButton>
+          </div>
+
+          <div className="demo-button">
+            <button onClick={() => navigate('/home')}>Go to Home</button>
+          </div>
+          <div className="submit-container">
+          {/* Button to switch to Sign Up (only if not already in Sign Up mode) */}
+          {action !== "Sign Up" && (
+            <button
+              type="button"
+              className="submit gray"
+              onClick={() => setAction("Sign Up")}
+            >
+              Sign Up
+            </button>
+          )}
+
+          {/* This is the main submit button */}
+          <button
+            type="submit"
+            className={action === "Sign Up" ? "submit gray" : "submit"}
+          >
+            {action}
+          </button>
         </div>
+
+        </form>
       </div>
+    </div>
   );
 };
 
