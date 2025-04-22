@@ -86,7 +86,7 @@ export default function HomeMap() {
 
                 <div className="map-container">
                     <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
-                        <Map zoom={12} center={userPosition} className="google-map"
+                        <Map zoom={12} defaultCenter={userPosition} className="google-map"
                              mapId={process.env.REACT_APP_GOOGLE_MAPS_MAP_ID} onLoad={() => setMapLoaded(true)}>
                             <AdvancedMarker
                                 position={userPosition}
