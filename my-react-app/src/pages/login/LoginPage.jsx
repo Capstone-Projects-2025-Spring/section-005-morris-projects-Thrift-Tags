@@ -12,8 +12,8 @@ import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { gapi } from 'gapi-script';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import LoginButton from './Login';
+//import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+//import LoginButton from './Login';
 import { useAuth } from '../../context/AuthContext'; // from GB
 
 const clientId = "91424131370-ievd7huontv62lvh8g7r0nnsktp4mheh.apps.googleusercontent.com";
@@ -186,33 +186,23 @@ const LoginPage = () => {
           {/* Error message */}
           {error && <div className="error-message">{error}</div>}
 
-          <div className="google-login">
-            <LoginButton onClick={handleLogin}>Login with Google</LoginButton>
-          </div>
-
-          <div className="demo-button">
-            <button onClick={() => navigate('/home')}>Go to Home</button>
-          </div>
           <div className="submit-container">
-          {/* Button to switch to Sign Up (only if not already in Sign Up mode) */}
-          {action !== "Sign Up" && (
-            <button
-              type="button"
-              className="submit gray"
-              onClick={() => setAction("Sign Up")}
-            >
-              Sign Up
-            </button>
-          )}
+          <button
+            type="button"
+            className={`submit ${action !== "Sign Up" ? "gray" : ""}`}
+            onClick={() => setAction("Sign Up")}
+          >
+            Sign Up
+          </button>
 
-          {/* This is the main submit button */}
           <button
             type="submit"
-            className={action === "Sign Up" ? "submit gray" : "submit"}
+            className={`submit ${action !== "Login" ? "gray" : ""}`}
           >
-            {action}
+            Login
           </button>
         </div>
+
 
         </form>
       </div>

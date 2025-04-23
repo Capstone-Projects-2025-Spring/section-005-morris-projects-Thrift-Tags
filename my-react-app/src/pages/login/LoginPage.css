@@ -184,6 +184,7 @@
     box-sizing: border-box;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     border: none;
+    white-space: nowrap;
 }
 
 /*  ADDED FROM GB – for active buttons not using gray  */
@@ -217,7 +218,6 @@
 .submit-button:hover {
     background: #a1b1d4;
 }
-/* Button component for reusable submit buttons */
 
 /* NEW FROM GB */
 .error-message {
