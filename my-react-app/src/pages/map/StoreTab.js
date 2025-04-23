@@ -51,7 +51,6 @@ export default function StoreTab() {
                             </div>
                             <div className="store-info">
                                 <h4>{store["Business Name"]}</h4>
-                                <p><strong>Category:</strong> {store["Category"]}</p>
                                 <p><strong>Rating:</strong> {store["Rating"]}</p>
                                 <p><strong>Address:</strong> {store["Address"]}</p>
                                 {store["Phone"] && <p><strong>Phone:</strong> {store["Phone"]}</p>}
