@@ -88,14 +88,6 @@ export default function HomeMap() {
 
             <div className="content-container">
                 <StoreTab/>
-                <div className="location-info">
-                    <h3>Location 1 Example</h3>
-                    <p>413 N 4th St Philadelphia, PA 19123</p>
-                    <p>The Wardrobe</p>
-                    <div className="location-image">
-                        <span className="image-placeholder"></span>
-                    </div>
-                </div>
 
                 <div className="map-container">
                     <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
@@ -141,15 +133,6 @@ export default function HomeMap() {
                             Pan to Current Location
                         </button>
                     )}
-                </div>
-
-                <div className="reviews-section">
-                    <h3>Reviews</h3>
-                    <ul>
-                        <li><span>1:</span> Review Example...</li>
-                        <li><span>2:</span> Review Example...</li>
-                        <li><span>3:</span> Review Example...</li>
-                    </ul>
                 </div>
             </div>
         </div>
