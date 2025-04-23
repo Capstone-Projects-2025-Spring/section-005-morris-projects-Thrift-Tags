@@ -16,6 +16,8 @@ const ProfilePage = () => {
         favorites: [],
         reviews: 0,
         friends: 0,
+        events: 0,
+        userEvents: [],
         avatar: null
     });
 
@@ -50,6 +52,18 @@ const ProfilePage = () => {
                   friendCount = friends.length;
                 }
 
+                // Fetch events where the user is the host
+                const eventsQuery = query(
+                    collection(db, "events"),
+                    where("host", "in", ["Me", "me", "myself", "Myself", userData?.username || ""])
+                );
+                const eventsSnapshot = await getDocs(eventsQuery);
+                const userEvents = eventsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                const eventCount = userEvents.length;
+
                 if (userDoc.exists()) {
                     const data = userDoc.data();
                     setUserData({
@@ -61,6 +75,8 @@ const ProfilePage = () => {
                         favorites: data.favorites || [],
                         reviews: reviewCount, // Use actual review count
                         friends: friendCount,
+                        events: eventCount, // Use actual event count
+                        userEvents: userEvents, // Store the events
                         avatar: data.avatar || null
                     });
 
@@ -122,6 +138,10 @@ const ProfilePage = () => {
         navigate('/friends');
     }
 
+    const handleEventsClick = () => {
+        navigate('/events');
+    }
+
     const handleFavoriteChange = (index, value) => {
         const updated = [...editedFavorites];
         updated[index] = value;
@@ -160,6 +180,10 @@ const ProfilePage = () => {
                         <div className="stat-item" onClick={handleFriendsClick} style={{ cursor: 'pointer' }}>
                             <span className="stat-number">{userData.friends}</span>
                             <span className="stat-label">Friends</span>
+                        </div>
+                        <div className="stat-item" onClick={handleEventsClick} style={{ cursor: 'pointer' }}>
+                            <span className="stat-number">{userData.events}</span>
+                            <span className="stat-label">Events</span>
                         </div>
                     </div>
                 </div>
