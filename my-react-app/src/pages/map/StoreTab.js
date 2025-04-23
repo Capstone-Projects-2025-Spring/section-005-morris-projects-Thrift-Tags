@@ -46,13 +46,18 @@ export default function StoreTab() {
                 {stores.length > 0 ? (
                     stores.map((store) => (
                         <div key={store.id} className="individual-store">
-                            <h4>{store["Business Name"]}</h4>
-                            <p><strong>Category:</strong> {store["Category"]}</p>
-                            <p><strong>Rating:</strong> {store["Rating"]}</p>
-                            <p><strong>Address:</strong> {store["Address"]}</p>
-                            {store["Phone"] && <p><strong>Phone:</strong> {store["Phone"]}</p>}
-                            {store["Email"] && <p><strong>Email:</strong> {store["Email"]}</p>}
-                            {store["Reviews"] && <p><strong>Reviews:</strong> {store["Reviews"]}</p>}
+                            <div className="image-container">
+                                <img src={process.env.PUBLIC_URL + store["imgLink"]} alt="Thrift Store"/>
+                            </div>
+                            <div className="store-info">
+                                <h4>{store["Business Name"]}</h4>
+                                <p><strong>Category:</strong> {store["Category"]}</p>
+                                <p><strong>Rating:</strong> {store["Rating"]}</p>
+                                <p><strong>Address:</strong> {store["Address"]}</p>
+                                {store["Phone"] && <p><strong>Phone:</strong> {store["Phone"]}</p>}
+                                {store["Email"] && <p><strong>Email:</strong> {store["Email"]}</p>}
+                                {store["Reviews"] && <p><strong>Reviews:</strong> {store["Reviews"]}</p>}
+                            </div>
                         </div>
                     ))
                 ) : (
