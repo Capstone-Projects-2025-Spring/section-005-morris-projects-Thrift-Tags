@@ -164,7 +164,7 @@
     display: flex;
     gap: 30px;
     margin: 30px auto; /* was 60px in Main */
-    justify-content: center; /* from GB */
+    justify-content: center; 
 }
 
 .submit {

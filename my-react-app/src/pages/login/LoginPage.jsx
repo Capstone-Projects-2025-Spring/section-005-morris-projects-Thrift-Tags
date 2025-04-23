@@ -187,21 +187,30 @@ const LoginPage = () => {
           {error && <div className="error-message">{error}</div>}
 
           <div className="submit-container">
-          <button
-            type="button"
-            className={`submit ${action !== "Sign Up" ? "gray" : ""}`}
-            onClick={() => setAction("Sign Up")}
-          >
-            Sign Up
-          </button>
+            <button
+              type={action === "Sign Up" ? "submit" : "button"} 
+              className={`submit ${action === "Sign Up" ? "" : "gray"}`}
+              onClick={() => {
+                if (action !== "Sign Up") {
+                  setAction("Sign Up");
+                }
+              }}
+            >
+              Sign Up
+            </button>
 
-          <button
-            type="submit"
-            className={`submit ${action !== "Login" ? "gray" : ""}`}
-          >
-            Login
-          </button>
-        </div>
+            <button
+              type={action === "Login" ? "submit" : "button"}
+              className={`submit ${action === "Login" ? "" : "gray"}`}
+              onClick={() => {
+                if (action !== "Login") {
+                  setAction("Login");
+                }
+              }}
+            >
+              Login
+            </button>
+          </div>
 
 
         </form>
