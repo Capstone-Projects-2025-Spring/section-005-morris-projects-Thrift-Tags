@@ -1,15 +1,17 @@
 import React, {useEffect, useState} from "react";
 import "./HomeMap.css";
 import {db} from "../../firebase";
+import { collection, getDocs } from "firebase/firestore";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, MapCameraChangedEvent } from "@vis.gl/react-google-maps";
 import axios from "axios";
 import NavBar from "../NavBar";
 import StoreTab from "./StoreTab";
 
 export default function HomeMap() {
-    const [userPosition, setUserPosition] = useState({ lat: 48.86, lng: 2.35});
+    const [userPosition, setUserPosition] = useState({ lat: 39.9526, lng: -75.1652});
     const [mapLoaded, setMapLoaded] = useState(false);
     const [activeStoreId, setActiveStoreId] = useState(null);
+    const [stores, setStores] = useState([]);
 
     const getUserLocation = () => {
         if (navigator.geolocation) {
@@ -23,51 +25,59 @@ export default function HomeMap() {
                 },
                 () => {
                     alert("Unable to retrieve your location.");
-                    setUserPosition({ lat: 48.8566, lng: 2.3522 });
+                    setUserPosition({ lat: 39.9526, lng: -75.1652});
                 }
             );
         } else {
             alert("Geolocation is not supported by this browser.");
-            setUserPosition({ lat: 48.8566, lng: 2.3522 });
+            setUserPosition({ lat: 39.9526, lng: -75.1652});
         }
+    };
+
+    const fetchStores = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "stores"));
+        const storeData = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+
+          const rawLat = data.Latitude?.trim?.();
+          const rawLng = data.Longitude?.trim?.();
+          const lat = parseFloat(rawLat);
+          const lng = parseFloat(rawLng);
+
+          if (isNaN(lat) || isNaN(lng)) {
+            console.warn("Skipping store with invalid coordinates:", data);
+            return null;
+          }
+
+          return {
+            id: doc.id,
+            ...data,
+            lat,
+            lng,
+          };
+        });
+
+        const validStores = storeData.filter(Boolean);
+        console.log("Valid stores:", validStores);
+        setStores(validStores);
+      } catch (error) {
+        console.error("Error fetching stores:", error);
+      }
     };
 
     useEffect(() => {
         getUserLocation();
+        fetchStores();
     }, []);
 
-    const stores = [
-      {
-        id: 1,
-        name: "The Wardrobe",
-        position: { lat: 39.9612, lng: -75.1551 },
-      },
-      {
-        id: 2,
-        name: "Philly AIDS Thrift",
-        position: { lat: 39.9385, lng: -75.1492 },
-      },
-      {
-        id: 3,
-        name: "Urban Exchange Project",
-        position: { lat: 39.95, lng: -75.17 },
-      },
-      {
-        id: 4,
-        name: "Greene Street Consignment",
-        position: { lat: 39.9498, lng: -75.1673 },
-      },
-      {
-        id: 5,
-        name: "Buffalo Exchange",
-        position: { lat: 39.9475, lng: -75.1622 },
-      },
-      {
-        id: 6,
-        name: "Retrospect Vintage",
-        position: { lat: 39.9391, lng: -75.1523 },
-      },
-    ];
+    const handleMarkerClick = (storeId) => {
+      setActiveStoreId(storeId);
+      const element = document.getElementById(`store-${storeId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
 
     return (
         <div className="home-map-container">
@@ -89,7 +99,7 @@ export default function HomeMap() {
 
                 <div className="map-container">
                     <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
-                        <Map zoom={12} center={userPosition} className="google-map"
+                        <Map zoom={12} defaultCenter={userPosition} className="google-map"
                              mapId={process.env.REACT_APP_GOOGLE_MAPS_MAP_ID} onLoad={() => setMapLoaded(true)}>
                             <AdvancedMarker
                                 position={userPosition}
@@ -99,8 +109,8 @@ export default function HomeMap() {
                             {stores.map((store) => (
                                 <AdvancedMarker
                                     key={store.id}
-                                    position={store.position}
-                                    title={store.name}
+                                    position={{ lat: store.lat, lng: store.lng }}
+                                    title={store["Business Name"]}
                                     onClick={() =>
                                         setActiveStoreId((prev) => (prev === store.id ? null : store.id))
                                     }
@@ -113,10 +123,10 @@ export default function HomeMap() {
                                     activeStoreId === store.id && (
                                         <InfoWindow
                                             key={`info-${store.id}`}
-                                            position={store.position}
+                                            position={{ lat: store.lat, lng: store.lng }}
                                             onCloseClick={() => setActiveStoreId(null)}
                                         >
-                                            <div>{store.name}</div>
+                                            <div>{store["Business Name"]}</div>
                                         </InfoWindow>
                                     )
                                 )}
