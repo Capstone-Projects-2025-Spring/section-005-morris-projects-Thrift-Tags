@@ -26,6 +26,10 @@ const FriendProfilePage = () => {
     navigate('/reviews', { state: { email: friendEmail } })
   };
 
+  const handleFriendsClick = () => {
+    navigate('/friend-friends', { state: { email: friendEmail, username: friendData.username } })
+  };
+
   useEffect(() => {
     const fetchFriendData = async () => {
       if (!friendEmail) return;
@@ -91,7 +95,7 @@ const FriendProfilePage = () => {
               <span className="stat-number">{friendData.reviews}</span>
               <span className="stat-label">Reviews</span>
             </div>
-            <div className="stat-item">
+            <div className="stat-item" onClick={handleFriendsClick} style={{ cursor: 'pointer' }}>
               <span className="stat-number">{friendData.friends}</span>
               <span className="stat-label">Friends</span>
             </div>
