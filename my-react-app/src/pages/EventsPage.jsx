@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import '../eventsPage.css';
 import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy } from "firebase/firestore";
 import { db } from '../firebase'; // Make sure you have this file set up with your Firebase config
+import { useLocation } from 'react-router-dom';
 
 const EventsPage = ({ onEvent }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -19,6 +20,12 @@ const EventsPage = ({ onEvent }) => {
   const [eventTime, setEventTime] = useState("");
   const [filterInput, setFilterInput] = useState("");
   const [locationMessage, setLocationMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  
+  // Get location state for friend's email (similar to ReviewsPage)
+  const location = useLocation();
+  const friendEmail = location.state?.email || null;
+  const friendName = location.state?.username || null;
   
   // State for event history
   const [eventHistory, setEventHistory] = useState([]);
@@ -29,21 +36,42 @@ const EventsPage = ({ onEvent }) => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const q = query(collection(db, "events"), orderBy("date"));
+        const email = friendEmail || sessionStorage.getItem('userEmail');
+
+        if (!email) {
+          console.log("No user email found");
+          setLoading(false);
+          return;
+        }
+
+        console.log("Fetching events for email:", email);
+
+        // Create a query to fetch events for this user
+        const q = query(
+          collection(db, "events"), 
+          where('userEmail', '==', email),
+          // orderBy("date")
+        );
+
         const querySnapshot = await getDocs(q);
         const eventsData = querySnapshot.docs.map(doc => ({
           id: doc.id, // Store the document ID
           ...doc.data()
         }));
+
+        console.log("Fetched events data:", eventsData);
+
         setEvents(eventsData);
         setFilteredEvents(eventsData);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching events: ", error);
+        setLoading(false);
       }
     };
 
     fetchEvents();
-  }, []);
+  }, [friendEmail]);
 
   // Function to move event to history
   const moveToHistory = async (eventToMove, reason) => {
@@ -202,18 +230,32 @@ const EventsPage = ({ onEvent }) => {
 
   const handleSubmit = async () => {
     if (eventName.trim() !== "") {
+      // Get user email for the event creation
+      const email = sessionStorage.getItem('userEmail');
+      
+      if (!email) {
+        alert("You must be logged in to create an event");
+        return;
+      }
+      
       const newEvent = {
         name: eventName,
         location: eventLocation || "TBD",
         host: eventHost || "Me",
         privacy: eventPrivacy === "Private" ? true : false, // Convert to boolean for Firestore
         date: eventDate || new Date().toISOString().split('T')[0],
-        time: eventTime || "00:00"
+        time: eventTime || "00:00",
+        userEmail: email // Add the user email to the event
       };
 
       try {
+        console.log("Creating new event:", newEvent);
+        
         // Add document to Firestore
         const docRef = await addDoc(collection(db, "events"), newEvent);
+        
+        console.log("Event created with ID:", docRef.id);
+        
         // Add the document ID to our event object
         const newEventWithId = { ...newEvent, id: docRef.id, privacy: eventPrivacy };
         
@@ -371,6 +413,7 @@ const EventsPage = ({ onEvent }) => {
         // Delete from Firestore if we have an ID
         if (eventToDelete.id) {
           await deleteDoc(doc(db, "events", eventToDelete.id));
+          console.log("Deleted event with ID:", eventToDelete.id);
         }
         
         // Add to history before removing
@@ -404,6 +447,14 @@ const EventsPage = ({ onEvent }) => {
   const restoreEvent = async () => {
     if (!eventToRestore) return;
     
+    // Get user email for the event restoration
+    const email = sessionStorage.getItem('userEmail');
+    
+    if (!email) {
+      alert("You must be logged in to restore an event");
+      return;
+    }
+    
     try {
       // Create a new event object without history-specific properties and with updated date/time
       const { removedOn, reason, id, ...restoredEventBase } = eventToRestore;
@@ -412,11 +463,15 @@ const EventsPage = ({ onEvent }) => {
         date: eventDate,
         time: eventTime,
         privacy: typeof restoredEventBase.privacy === 'string' ? 
-          restoredEventBase.privacy === "Private" : restoredEventBase.privacy
+          restoredEventBase.privacy === "Private" : restoredEventBase.privacy,
+        userEmail: email // Add the user email to the restored event
       };
+      
+      console.log("Restoring event:", restoredEvent);
       
       // Add back to Firestore
       const docRef = await addDoc(collection(db, "events"), restoredEvent);
+      console.log("Restored event with ID:", docRef.id);
       
       // Add to local state with the new document ID
       const restoredEventWithId = { 
@@ -485,11 +540,14 @@ const EventsPage = ({ onEvent }) => {
       
       // Remove expired events from Firestore and local state
       if (expiredEventIds.length > 0) {
+        console.log("Found expired events:", expiredEventIds);
+        
         // Delete from Firestore
         for (const id of expiredEventIds) {
           if (id) {
             try {
               await deleteDoc(doc(db, "events", id));
+              console.log("Removed expired event ID:", id);
             } catch (error) {
               console.error("Error removing expired event: ", error);
             }
@@ -525,10 +583,29 @@ const EventsPage = ({ onEvent }) => {
     return privacy;
   };
 
+  // Set page title based on whether viewing a friend's events or own events
+  const pageTitle = friendEmail 
+    ? `${friendName || "Friend"}'s Events` 
+    : "My Events";
+
+  // Determine if the create event button should be visible
+  // Only show it when viewing your own events, not a friend's
+  const showCreateEventButton = !friendEmail;
+
+  // Debug: Log events whenever they change
+  useEffect(() => {
+    console.log("Current events state:", events);
+    console.log("Filtered events state:", filteredEvents);
+  }, [events, filteredEvents]);
+
+  if (loading) {
+    return <div className="body-wrapper"><div className="eventsContainer">Loading events...</div></div>;
+  }
+
   return (
     <div className="body-wrapper">
       <div className="eventsContainer">
-        <div className="eventTitle">Events Page</div>
+        <div className="eventTitle">{pageTitle}</div>
         <input
           value={filterInput}
           onChange={(e) => setFilterInput(e.target.value)}
@@ -538,8 +615,16 @@ const EventsPage = ({ onEvent }) => {
         <button onClick={doFilter}>Search</button>
         &nbsp;
         <button onClick={clearFilter}>Clear Search</button>
-        <button className="createEventButton" onClick={openPopup}>Create Event</button>
-        <button className="historyButton" onClick={openHistoryPopup}>Event History</button>
+        
+        {/* Only show create button when viewing own events */}
+        {showCreateEventButton && (
+          <button className="createEventButton" onClick={openPopup}>Create Event</button>
+        )}
+        
+        {/* Only show history button when viewing own events */}
+        {showCreateEventButton && (
+          <button className="historyButton" onClick={openHistoryPopup}>Event History</button>
+        )}
 
         {/* Create Event Popup */}
         <div id="myPopup" className="popup" style={{ display: isPopupOpen ? "block" : "none" }} onClick={handleOutsideClick}>
@@ -709,45 +794,57 @@ const EventsPage = ({ onEvent }) => {
           </div>
         )}
 
-        <table>
-          <thead>
-            <tr>
-              <th onClick={() => sortByProp("name", "text")}>
-                <span style={{ cursor: "pointer" }}>⇅</span>Event Name</th>
-              <th onClick={() => sortByProp("location", "text")}>
-                <span style={{ cursor: "pointer" }}>⇅</span>Event Location</th>
-              <th onClick={() => sortByProp("host", "text")}>
-                <span style={{ cursor: "pointer" }}>⇅</span>Hosting</th>
-              <th onClick={() => sortByProp("privacy", "text")}>
-                <span style={{ cursor: "pointer" }}>⇅</span>Private/Public</th>
-              <th onClick={() => sortByProp("date", "date")}>
-                <span style={{ cursor: "pointer" }}>⇅</span>Date</th>
-              <th onClick={() => sortByProp("time", "text")}>
-                <span style={{ cursor: "pointer" }}>⇅</span>Time</th>
-              <th>Delete</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredEvents.map((event, index) => (
-              <tr
-                key={event.id || index}
-                className={isMyEvent(event.host) ? "my-event-row" : ""}
-                onClick={() => openDetailsPopup(event)}
-                style={{ cursor: "pointer" }}
-              >
-                <td>{event.name}</td>
-                <td>{event.location}</td>
-                <td>{event.host}</td>
-                <td>{formatPrivacy(event.privacy)}</td>
-                <td>{event.date}</td>
-                <td>{event.time}</td>
-                <td className="delete-cell" onClick={(e) => handleDeleteEvent(event, index, e)}>
-                  🗑️
-                </td>
+        {filteredEvents.length === 0 ? (
+          <div className="no-events">
+            {friendEmail ? 
+              `${friendName || "This user"} doesn't have any events yet.` : 
+              "You don't have any events yet."}
+          </div>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th onClick={() => sortByProp("name", "text")}>
+                  <span style={{ cursor: "pointer" }}>⇅</span>Event Name</th>
+                <th onClick={() => sortByProp("location", "text")}>
+                  <span style={{ cursor: "pointer" }}>⇅</span>Event Location</th>
+                <th onClick={() => sortByProp("host", "text")}>
+                  <span style={{ cursor: "pointer" }}>⇅</span>Hosting</th>
+                <th onClick={() => sortByProp("privacy", "text")}>
+                  <span style={{ cursor: "pointer" }}>⇅</span>Private/Public</th>
+                <th onClick={() => sortByProp("date", "date")}>
+                  <span style={{ cursor: "pointer" }}>⇅</span>Date</th>
+                <th onClick={() => sortByProp("time", "text")}>
+                  <span style={{ cursor: "pointer" }}>⇅</span>Time</th>
+                {/* Only show delete column for your own events */}
+                {!friendEmail && <th>Delete</th>}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredEvents.map((event, index) => (
+                <tr
+                  key={event.id || index}
+                  className={isMyEvent(event.host) ? "my-event-row" : ""}
+                  onClick={() => openDetailsPopup(event)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <td>{event.name}</td>
+                  <td>{event.location}</td>
+                  <td>{event.host}</td>
+                  <td>{formatPrivacy(event.privacy)}</td>
+                  <td>{event.date}</td>
+                  <td>{event.time}</td>
+                  {/* Only show delete buttons for your own events */}
+                  {!friendEmail && (
+                    <td className="delete-cell" onClick={(e) => handleDeleteEvent(event, index, e)}>
+                      🗑️
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
