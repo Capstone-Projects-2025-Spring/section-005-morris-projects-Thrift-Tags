@@ -10,6 +10,7 @@ import ReviewsPage from './pages/ReviewsPage';
 import FriendPage from './pages/FriendPage';
 import AddReviewPage from './pages/AddReviewPage';
 import FriendProfilePage from './pages/FriendProfilePage';
+import FriendFriendsPage from './pages/FriendFriendsPage';
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
                 <Route path="/friends" element={<FriendPage/>}/>
                 <Route path="/add-review" element={<AddReviewPage/>}/>
                 <Route path="/friendprofile" element={<FriendProfilePage/>}/>
+                <Route path="/friend-friends" element={<FriendFriendsPage/>}/>
             </Routes>
         </Router>
     );
