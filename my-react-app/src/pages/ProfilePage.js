@@ -17,7 +17,7 @@ const ProfilePage = () => {
         reviews: 0,
         friends: 0,
         events: 0,
-        userEvents: [],
+        userEvents: 0,
         avatar: null
     });
 
@@ -51,18 +51,14 @@ const ProfilePage = () => {
                   const friends = userData.friends || [];
                   friendCount = friends.length;
                 }
-
-                // Fetch events where the user is the host
+ 
+                // FIX: Query the events collection instead of reviews
                 const eventsQuery = query(
-                    collection(db, "events"),
-                    where("host", "in", ["Me", "me", "myself", "Myself", userData?.username || ""])
+                    collection(db, "events"), 
+                    where("userEmail", "==", email)
                 );
                 const eventsSnapshot = await getDocs(eventsQuery);
-                const userEvents = eventsSnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                const eventCount = userEvents.length;
+                const eventCount = eventsSnapshot.size;
 
                 if (userDoc.exists()) {
                     const data = userDoc.data();
@@ -75,8 +71,7 @@ const ProfilePage = () => {
                         favorites: data.favorites || [],
                         reviews: reviewCount, // Use actual review count
                         friends: friendCount,
-                        events: eventCount, // Use actual event count
-                        userEvents: userEvents, // Store the events
+                        events: eventCount, // Use actual event count from events collection
                         avatar: data.avatar || null
                     });
 
