@@ -109,3 +109,27 @@ button:disabled {
     background-color: #ccc !important;
     cursor: not-allowed;
 }
+
+.add-friend-button {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.add-friend-button:hover {
+    background-color: #45a049;
+}
+
+.add-friend-button.requested {
+    background-color: #808080;
+    cursor: not-allowed;
+}
+
+.add-friend-button.requested:hover {
+    background-color: #808080;
+}

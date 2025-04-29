@@ -11,6 +11,7 @@
         const [friendRequests, setFriendRequests] = useState([]);
         const [friends, setFriends] = useState([]);
         const [userEmail, setUserEmail] = useState("");
+        const [sentRequests, setSentRequests] = useState(new Set());
 
         useEffect(() => {
             const email = sessionStorage.getItem('userEmail');
@@ -43,11 +44,15 @@
         };
 
         const sendFriendRequest = async (toEmail) => {
-            const toRef = doc(db, "users", toEmail);
-            await updateDoc(toRef, {
-                friendRequests: arrayUnion(userEmail)
-            });
-            alert("Friend request sent!");
+            try {
+                const toRef = doc(db, "users", toEmail);
+                await updateDoc(toRef, {
+                    friendRequests: arrayUnion(userEmail)
+                });
+                setSentRequests(prev => new Set([...prev, toEmail]));
+            } catch (error) {
+                console.error("Error sending friend request:", error);
+            }
         };
 
         const acceptRequest = async (fromEmail) => {
@@ -74,18 +79,23 @@
             setFriendRequests(friendRequests.filter(email => email !== fromEmail));
         };
 
-        const removeFriend = async (emailToRemove) => {
-            const myRef = doc(db, "users", userEmail);
-            const friendRef = doc(db, "users", emailToRemove);
+        const removeFriend = async (friendEmail) => {
+            try {
+                const userRef = doc(db, "users", userEmail);
+                const friendRef = doc(db, "users", friendEmail);
 
-            await updateDoc(myRef, {
-                friends: arrayRemove(emailToRemove)
-            });
-            await updateDoc(friendRef, {
-                friends: arrayRemove(userEmail)
-            });
+                await updateDoc(userRef, {
+                    friends: arrayRemove(friendEmail)
+                });
 
-            setFriends(friends.filter(email => email !== emailToRemove));
+                await updateDoc(friendRef, {
+                    friends: arrayRemove(userEmail)
+                });
+
+                setFriends(friends.filter(friend => friend.email !== friendEmail));
+            } catch (error) {
+                console.error("Error removing friend:", error);
+            }
         };
         
         const goToFriendProfile = (email) => {
@@ -108,7 +118,13 @@
                     {searchResults.map((user, idx) => (
                         <div key={idx} className="search-result">
                             <span>{user.username} ({user.email})</span>
-                            <button onClick={() => sendFriendRequest(user.email)}>Add Friend</button>
+                            <button 
+                                className={`add-friend-button ${sentRequests.has(user.email) ? 'requested' : ''}`}
+                                onClick={() => sendFriendRequest(user.email)}
+                                disabled={sentRequests.has(user.email)}
+                            >
+                                {sentRequests.has(user.email) ? 'Requested' : 'Add Friend'}
+                            </button>
                         </div>
                     ))}
                 </div>

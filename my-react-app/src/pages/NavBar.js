@@ -1,12 +1,17 @@
 import React, {useState} from 'react';
-import {Link, useMatch, useResolvedPath} from "react-router-dom"
+import {Link, useMatch, useResolvedPath, useNavigate} from "react-router-dom"
 import './NavBar.css';
 
 export default function NavBar() {
-
+    const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
+    };
+
+    const handleLogout = () => {
+        sessionStorage.removeItem('userEmail');
+        navigate('/');
     };
 
     return (
@@ -27,6 +32,9 @@ export default function NavBar() {
                 <CustomLink to="/add-review">Add Review</CustomLink>
                 <CustomLink to="/reviews">Reviews</CustomLink>
                 <CustomLink to="/profile">Profile</CustomLink>
+                <li>
+                    <button className="logout-button" onClick={handleLogout}>Logout</button>
+                </li>
             </ul>
         </nav>
     )

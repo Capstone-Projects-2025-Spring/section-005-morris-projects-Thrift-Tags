@@ -24,7 +24,6 @@ export default function HomeMap() {
                     setUserPosition(userPos);
                 },
                 () => {
-                    alert("Unable to retrieve your location.");
                     setUserPosition({ lat: 39.9526, lng: -75.1652});
                 }
             );

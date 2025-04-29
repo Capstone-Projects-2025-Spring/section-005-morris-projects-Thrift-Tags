@@ -13,6 +13,7 @@ const FriendFriendsPage = () => {
     const [friends, setFriends] = useState([]);
     const [loading, setLoading] = useState(true);
     const [myFriends, setMyFriends] = useState([]);
+    const [sentRequests, setSentRequests] = useState(new Set());
 
     useEffect(() => {
         const fetchFriends = async () => {
@@ -70,10 +71,9 @@ const FriendFriendsPage = () => {
             await updateDoc(toRef, {
                 friendRequests: arrayUnion(currentUserEmail)
             });
-            alert("Friend request sent!");
+            setSentRequests(prev => new Set([...prev, toEmail]));
         } catch (error) {
             console.error("Error sending friend request:", error);
-            alert("Failed to send friend request. Please try again.");
         }
     };
 
@@ -118,10 +118,11 @@ const FriendFriendsPage = () => {
                                  currentUserEmail !== friend.email && 
                                  !myFriends.includes(friend.email) && (
                                     <button 
-                                        className="add-friend-button"
+                                        className={`add-friend-button ${sentRequests.has(friend.email) ? 'requested' : ''}`}
                                         onClick={() => sendFriendRequest(friend.email)}
+                                        disabled={sentRequests.has(friend.email)}
                                     >
-                                        Add
+                                        {sentRequests.has(friend.email) ? 'Requested' : 'Add'}
                                     </button>
                                 )}
                             </div>

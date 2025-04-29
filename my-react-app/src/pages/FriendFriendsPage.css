@@ -78,18 +78,26 @@
 
 .add-friend-button {
     padding: 8px 16px;
-    background-color: #6b83bb;
+    background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 5px;
-    font-size: 0.9rem;
+    border-radius: 4px;
     cursor: pointer;
+    font-weight: bold;
     transition: background-color 0.3s;
-    white-space: nowrap;
 }
 
 .add-friend-button:hover {
-    background-color: #889ccd;
+    background-color: #45a049;
+}
+
+.add-friend-button.requested {
+    background-color: #808080;
+    cursor: not-allowed;
+}
+
+.add-friend-button.requested:hover {
+    background-color: #808080;
 }
 
 .no-friends {

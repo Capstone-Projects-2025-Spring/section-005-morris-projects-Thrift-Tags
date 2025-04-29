@@ -20,7 +20,6 @@ const AddReviewPage = () => {
         try {
             const userEmail = sessionStorage.getItem('userEmail');
             if (!userEmail) {
-                alert('Please log in to submit a review');
                 return;
             }
 
@@ -32,11 +31,9 @@ const AddReviewPage = () => {
                 date: new Date().toISOString()
             });
 
-            alert('Review submitted successfully!');
-            navigate('/reviews'); // Redirect to reviews page
+            navigate('/reviews');
         } catch (error) {
             console.error("Error adding review:", error);
-            alert('Failed to submit review. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
