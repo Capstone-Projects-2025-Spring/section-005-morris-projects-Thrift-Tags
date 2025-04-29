@@ -36,14 +36,12 @@ const LoginPage = ({onLogin}) => {
           password,
           createdAt: new Date().toISOString(),
         });
-        alert("Sign up successful!");
         setAction("Login");
         setUsername("");
         setEmail("");
         setPassword("");
       } catch (err) {
         console.error("Error signing up:", err);
-        alert("Sign up failed.");
       }
     } else {
       try {
@@ -51,18 +49,12 @@ const LoginPage = ({onLogin}) => {
         if (userDoc.exists()) {
           const data = userDoc.data();
           if (data.password === password) {
-            alert("Login successful!");
             sessionStorage.setItem('userEmail', email);
             navigate("/home");
-          } else {
-            alert("Incorrect password.");
           }
-        } else {
-          alert("User not found.");
         }
       } catch (err) {
         console.error("Error logging in:", err);
-        alert("Login failed.");
       }
     }
   };
