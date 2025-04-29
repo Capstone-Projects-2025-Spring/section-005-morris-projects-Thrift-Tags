@@ -15,6 +15,8 @@ import { gapi } from 'gapi-script';
 //import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 //import LoginButton from './Login';
 import { useAuth } from '../../context/AuthContext'; // from GB
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../../firebase";
 
 const clientId = "91424131370-ievd7huontv62lvh8g7r0nnsktp4mheh.apps.googleusercontent.com";
 
@@ -114,6 +116,20 @@ const LoginPage = () => {
       authenticate(id_token);
     }
   };
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Please enter your email address first.");
+      return;
+    }
+  
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setError("");
+      alert("Password reset email sent! Please check your inbox.");
+    } catch (error) {
+      setError(error.message);
+    }
+  };
 
   return (
     <div className="login-page">
@@ -179,7 +195,7 @@ const LoginPage = () => {
 
           {action === "Login" && (
             <div className="forgot-password">
-              Lost password? <span>Click here!</span>
+              Lost password? <span onClick={handleForgotPassword}>Click here!</span>
             </div>
           )}
 
