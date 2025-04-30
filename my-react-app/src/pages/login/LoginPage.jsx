@@ -43,7 +43,8 @@ const LoginPage = () => {
           email,
           createdAt: new Date().toISOString(),
         });
-
+    
+        sessionStorage.setItem('userEmail', email);
         navigate('/home');
       } else {
         await login(email, password);
@@ -52,6 +53,7 @@ const LoginPage = () => {
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {
+          sessionStorage.setItem('userEmail', email);
           navigate('/home');
         } else {
           setError("User not found in database");
