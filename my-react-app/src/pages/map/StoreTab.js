@@ -5,10 +5,8 @@ import {APIProvider, Map, AdvancedMarker, Pin, InfoWindow, MapCameraChangedEvent
 import axios from "axios";
 import "./StoreTab.css";
 
-export default function StoreTab() {
-
+export default function StoreTab({ selectedStoreId, selectedStore, stores }) {
     const [isStoreTabOpen, setIsStoreTabOpen] = useState(false);
-    const [stores, setStores] = useState([]);
 
     const toggleStoreTab = () => {
         setIsStoreTabOpen(!isStoreTabOpen);
@@ -16,17 +14,22 @@ export default function StoreTab() {
 
     const fetchStores = async () => {
         try {
-            const storesCollection = collection(db, "stores"); // Access the 'stores' collection
+            const storesCollection = collection(db, "stores");
             const storeSnapshot = await getDocs(storesCollection);
             const storeList = storeSnapshot.docs.map(doc => ({
-                id: doc.id, // Document ID
-                ...doc.data() // Data from Firestore
+                id: doc.id,
+                ...doc.data()
             }));
-            setStores(storeList); // Store the stores in state
         } catch (error) {
             console.error("Error fetching stores: ", error);
         }
     };
+
+    useEffect(() => {
+        if (selectedStoreId) {
+            setIsStoreTabOpen(true);
+        }
+    }, [selectedStoreId]);
 
     useEffect(() => {
         fetchStores();
@@ -34,20 +37,39 @@ export default function StoreTab() {
 
     return (
         <div className={`store-tab-container ${isStoreTabOpen ? 'open' : ''}`}>
-            {/* Toggle button attached to the edge */}
             <button className="store-tab-toggle-button" onClick={toggleStoreTab}>
                 {isStoreTabOpen ? '❮' : '❯'}
             </button>
 
             <div className="store-header">
-                <h3>Stores</h3>
+                <h3>{selectedStore ? "Store Details" : "Stores"}</h3>
             </div>
             <div className="store-content">
-                {stores.length > 0 ? (
+                {selectedStore ? (
+                    <div className="individual-store" key={selectedStore.id}>
+                        <div className="image-container">
+                            <img
+                                src={process.env.PUBLIC_URL + selectedStore["imgLink"]}
+                                alt="Thrift Store"
+                            />
+                        </div>
+                        <div className="store-info">
+                            <h4>{selectedStore["Business Name"]}</h4>
+                            <p><strong>Rating:</strong> {selectedStore["Rating"]}</p>
+                            <p><strong>Address:</strong> {selectedStore["Address"]}</p>
+                            {selectedStore["Phone"] && <p><strong>Phone:</strong> {selectedStore["Phone"]}</p>}
+                            {selectedStore["Email"] && <p><strong>Email:</strong> {selectedStore["Email"]}</p>}
+                            {selectedStore["Reviews"] && <p><strong>Reviews:</strong> {selectedStore["Reviews"]}</p>}
+                        </div>
+                    </div>
+                ) : stores.length > 0 ? (
                     stores.map((store) => (
                         <div key={store.id} className="individual-store">
                             <div className="image-container">
-                                <img src={process.env.PUBLIC_URL + store["imgLink"]} alt="Thrift Store"/>
+                                <img
+                                    src={process.env.PUBLIC_URL + store["imgLink"]}
+                                    alt="Thrift Store"
+                                />
                             </div>
                             <div className="store-info">
                                 <h4>{store["Business Name"]}</h4>
@@ -65,6 +87,4 @@ export default function StoreTab() {
             </div>
         </div>
     );
-
-
 }

@@ -7,11 +7,33 @@ import axios from "axios";
 import NavBar from "../NavBar";
 import StoreTab from "./StoreTab";
 
+function FilterPanel({ filters, setFilters }) {
+  const handleRatingChange = (e) => {
+    setFilters((prev) => ({ ...prev, minRating: parseFloat(e.target.value) }));
+  };
+
+  return (
+    <div className="filter-panel">
+      <h3>Filter Stores</h3>
+      <label>
+        Minimum Rating:
+        <select value={filters.minRating} onChange={handleRatingChange}>
+          <option value={0}>All</option>
+          <option value={4.5}>4.5+</option>
+          <option value={4.0}>4.0+</option>
+          <option value={3.5}>3.5+</option>
+        </select>
+      </label>
+    </div>
+  );
+}
+
 export default function HomeMap() {
     const [userPosition, setUserPosition] = useState({ lat: 39.9526, lng: -75.1652});
     const [mapLoaded, setMapLoaded] = useState(false);
     const [activeStoreId, setActiveStoreId] = useState(null);
     const [stores, setStores] = useState([]);
+    const [filters, setFilters] = useState({ minRating: 0 });
 
     const getUserLocation = () => {
         if (navigator.geolocation) {
@@ -38,7 +60,7 @@ export default function HomeMap() {
         const querySnapshot = await getDocs(collection(db, "stores"));
         const storeData = querySnapshot.docs.map((doc) => {
           const data = doc.data();
-
+          const filteredStores = stores.filter((store) => store.Rating >= filters.minRating);
           const rawLat = data.Latitude?.trim?.();
           const rawLng = data.Longitude?.trim?.();
           const lat = parseFloat(rawLat);
@@ -70,6 +92,7 @@ export default function HomeMap() {
         fetchStores();
     }, []);
 
+    const filteredStores = stores.filter((store) => store.Rating >= filters.minRating);
     const handleMarkerClick = (storeId) => {
       setActiveStoreId(storeId);
       const element = document.getElementById(`store-${storeId}`);
@@ -86,7 +109,12 @@ export default function HomeMap() {
             </div>
 
             <div className="content-container">
-                <StoreTab/>
+                <FilterPanel filters={filters} setFilters={setFilters} />
+                <StoreTab
+                    selectedStoreId={activeStoreId}
+                    selectedStore={stores.find((store) => store.id === activeStoreId)}
+                    stores={filteredStores}
+                />
 
                 <div className="map-container">
                     <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
@@ -97,7 +125,7 @@ export default function HomeMap() {
                                 title="Your Location">
                               <Pin background="#3366cc" borderColor="#003399" glyphColor="white" />
                             </AdvancedMarker>
-                            {stores.map((store) => (
+                            {filteredStores.map((store) => (
                                 <AdvancedMarker
                                     key={store.id}
                                     position={{ lat: store.lat, lng: store.lng }}
@@ -109,18 +137,20 @@ export default function HomeMap() {
                                     <Pin />
                                 </AdvancedMarker>
                             ))}
-                            {stores.map(
-                                (store) =>
-                                    activeStoreId === store.id && (
-                                        <InfoWindow
-                                            key={`info-${store.id}`}
-                                            position={{ lat: store.lat, lng: store.lng }}
-                                            onCloseClick={() => setActiveStoreId(null)}
-                                        >
-                                            <div>{store["Business Name"]}</div>
-                                        </InfoWindow>
-                                    )
-                                )}
+                            {filteredStores.map((store) => {
+                              if (activeStoreId === store.id) {
+                                return (
+                                  <InfoWindow
+                                    key={`info-${store.id}`}
+                                    position={{ lat: store.lat, lng: store.lng }}
+                                    onCloseClick={() => setActiveStoreId(null)}
+                                  >
+                                    <div>{store["Business Name"]}</div>
+                                  </InfoWindow>
+                                );
+                              }
+                              return null;
+                            })}
                             <InfoWindow position={userPosition}>
                                 <div>Your Current Location</div>
                             </InfoWindow>
