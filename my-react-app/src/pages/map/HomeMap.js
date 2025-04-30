@@ -7,9 +7,27 @@ import axios from "axios";
 import NavBar from "../NavBar";
 import StoreTab from "./StoreTab";
 
+function getDistanceInMiles(lat1, lon1, lat2, lon2) {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 function FilterPanel({ filters, setFilters }) {
   const handleRatingChange = (e) => {
     setFilters((prev) => ({ ...prev, minRating: parseFloat(e.target.value) }));
+  };
+
+  const handleRadiusChange = (e) => {
+    setFilters((prev) => ({ ...prev, radius: parseFloat(e.target.value) }));
   };
 
   return (
@@ -24,6 +42,17 @@ function FilterPanel({ filters, setFilters }) {
           <option value={3.5}>3.5+</option>
         </select>
       </label>
+      <br /><br />
+      <label>
+        Radius (miles):
+        <select value={filters.radius} onChange={handleRadiusChange}>
+          <option value={9999}>All</option>
+          <option value={1}>1 mile</option>
+          <option value={5}>5 miles</option>
+          <option value={10}>10 miles</option>
+          <option value={25}>25 miles</option>
+        </select>
+      </label>
     </div>
   );
 }
@@ -33,7 +62,8 @@ export default function HomeMap() {
     const [mapLoaded, setMapLoaded] = useState(false);
     const [activeStoreId, setActiveStoreId] = useState(null);
     const [stores, setStores] = useState([]);
-    const [filters, setFilters] = useState({ minRating: 0 });
+    const [filters, setFilters] = useState({ minRating: 0, radius: 9999 });
+    
 
     const getUserLocation = () => {
         if (navigator.geolocation) {
@@ -91,8 +121,20 @@ export default function HomeMap() {
         getUserLocation();
         fetchStores();
     }, []);
+    
 
-    const filteredStores = stores.filter((store) => store.Rating >= filters.minRating);
+    const ratingFilteredStores = stores.filter((store) => store.Rating >= filters.minRating);
+    
+    const filteredStores = ratingFilteredStores.filter((store) => {
+      const distance = getDistanceInMiles(
+        userPosition.lat,
+        userPosition.lng,
+        store.lat,
+        store.lng
+      );
+      return distance <= filters.radius;
+    });
+
     const handleMarkerClick = (storeId) => {
       setActiveStoreId(storeId);
       const element = document.getElementById(`store-${storeId}`);
