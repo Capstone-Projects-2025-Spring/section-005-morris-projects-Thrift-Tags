@@ -3,7 +3,6 @@ import "./HomeMap.css";
 import {db} from "../../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, MapCameraChangedEvent } from "@vis.gl/react-google-maps";
-import axios from "axios";
 import NavBar from "../NavBar";
 import StoreTab from "./StoreTab";
 

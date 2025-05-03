@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import {db} from "../../firebase";
 import {collection, doc, getDoc, getDocs} from 'firebase/firestore';
 import {APIProvider, Map, AdvancedMarker, Pin, InfoWindow, MapCameraChangedEvent} from "@vis.gl/react-google-maps";
-import axios from "axios";
 import "./StoreTab.css";
 
 export default function StoreTab({ selectedStoreId, selectedStore, stores }) {
